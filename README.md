@@ -71,3 +71,4 @@ Si quieres, puedo:
 - Añadir soporte para más operadores y paréntesis
 - Hacer manejo de teclado más completo (mayúsculas/shift)
 - Poner el proyecto en Git y crear un script de instalación de toolchain
+# cris-os-v2

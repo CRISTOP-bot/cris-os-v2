@@ -28,16 +28,28 @@ $(BUILD_DIR)/boot.o: boot/boot.S | $(BUILD_DIR)
 	$(AS) -m32 -ffreestanding -c boot/boot.S -o $(BUILD_DIR)/boot.o
 
 $(BUILD_DIR)/kernel.o: src/kernel.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c src/kernel.cpp -o $(BUILD_DIR)/kernel.o
+    $(CC) $(CFLAGS) -c src/kernel.cpp -o $(BUILD_DIR)/kernel.o
+
+$(BUILD_DIR)/console.o: src/console.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c src/console.cpp -o $(BUILD_DIR)/console.o
+
+$(BUILD_DIR)/keyboard.o: src/keyboard.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c src/keyboard.cpp -o $(BUILD_DIR)/keyboard.o
+
+$(BUILD_DIR)/shell.o: src/shell.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c src/shell.cpp -o $(BUILD_DIR)/shell.o
+
+$(BUILD_DIR)/memory.o: src/memory.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c src/memory.cpp -o $(BUILD_DIR)/memory.o
 
 $(BUILD_DIR)/calc.o: src/calc.c | $(BUILD_DIR)
-	$(AS) -m32 -ffreestanding -c src/calc.c -o $(BUILD_DIR)/calc.o
+	$(CC) $(CFLAGS) -c src/calc.c -o $(BUILD_DIR)/calc.o
 
 $(BUILD_DIR)/math_asm.o: src/math_asm.S | $(BUILD_DIR)
 	$(AS) -m32 -ffreestanding -c src/math_asm.S -o $(BUILD_DIR)/math_asm.o
 
-$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/math_asm.o linker.ld | $(BUILD_DIR)
-	$(LD) $(LDFLAGS) -T linker.ld -o $(KERNEL) $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/math_asm.o
+$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/math_asm.o linker.ld | $(BUILD_DIR)
+	$(LD) $(LDFLAGS) -T linker.ld -o $(KERNEL) $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/math_asm.o
 
 iso: all
 	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin

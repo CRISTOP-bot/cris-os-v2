@@ -15,8 +15,10 @@ endif
 
 BUILD_DIR = build
 ISO_DIR = iso
+PYTHON ?= python
 
 KERNEL = $(BUILD_DIR)/kernel.bin
+ROOTFS = $(ISO_DIR)/boot/rootfs.bin
 
 all: $(KERNEL)
 
@@ -24,17 +26,19 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(ISO_DIR)/boot/grub
 
+$(ISO_DIR)/boot:
+	mkdir -p $(ISO_DIR)/boot
+
 $(BUILD_DIR)/boot.o: boot/boot.S | $(BUILD_DIR)
 	$(AS) -m32 -ffreestanding -c boot/boot.S -o $(BUILD_DIR)/boot.o
 
 $(BUILD_DIR)/kernel.o: src/kernel.cpp | $(BUILD_DIR)
-    $(CC) $(CFLAGS) -c src/kernel.cpp -o $(BUILD_DIR)/kernel.o
-
+	$(CC) $(CFLAGS) -c src/kernel.cpp -o $(BUILD_DIR)/kernel.o
 $(BUILD_DIR)/console.o: src/console.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c src/console.cpp -o $(BUILD_DIR)/console.o
 
-$(BUILD_DIR)/keyboard.o: src/keyboard.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c src/keyboard.cpp -o $(BUILD_DIR)/keyboard.o
+$(BUILD_DIR)/fs.o: src/fs.cpp | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c src/fs.cpp -o $(BUILD_DIR)/fs.o
 
 $(BUILD_DIR)/shell.o: src/shell.cpp | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c src/shell.cpp -o $(BUILD_DIR)/shell.o
@@ -48,10 +52,13 @@ $(BUILD_DIR)/calc.o: src/calc.c | $(BUILD_DIR)
 $(BUILD_DIR)/math_asm.o: src/math_asm.S | $(BUILD_DIR)
 	$(AS) -m32 -ffreestanding -c src/math_asm.S -o $(BUILD_DIR)/math_asm.o
 
-$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/math_asm.o linker.ld | $(BUILD_DIR)
-	$(LD) $(LDFLAGS) -T linker.ld -o $(KERNEL) $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/math_asm.o
+$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/fs.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/math_asm.o linker.ld | $(BUILD_DIR)
+	$(LD) $(LDFLAGS) -T linker.ld -o $(KERNEL) $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/fs.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/math_asm.o
 
-iso: all
+$(ROOTFS): tools/build_rootfs.py rootfs/README.txt rootfs/info.txt | $(ISO_DIR)/boot
+	$(PYTHON) tools/build_rootfs.py rootfs $(ROOTFS)
+
+iso: all $(ROOTFS)
 	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
 
 echo-iso: iso
@@ -61,6 +68,6 @@ run: echo-iso
 	qemu-system-i386 -cdrom os.iso -m 512M
 
 clean:
-	rm -rf $(BUILD_DIR) os.iso $(ISO_DIR)/boot/kernel.bin
+	rm -rf $(BUILD_DIR) os.iso $(ISO_DIR)/boot/kernel.bin $(ISO_DIR)/boot/rootfs.bin
 
 .PHONY: all iso echo-iso run clean

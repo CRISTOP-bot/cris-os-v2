@@ -16,7 +16,9 @@ start:
     mov %ax, %fs
     mov %ax, %gs
     mov $stack_top, %esp
+    push %ebx
     call kmain
+    add $4, %esp
 1:  jmp 1b
 
 .section .bss

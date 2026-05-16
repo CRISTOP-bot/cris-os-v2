@@ -1,0 +1,4 @@
+build/
+os.iso
+iso/boot/kernel.bin
+iso/boot/rootfs.bin

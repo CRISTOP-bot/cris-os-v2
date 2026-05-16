@@ -1,0 +1,2 @@
+MiniOS v0.1
+Sistema de archivos básico montado.

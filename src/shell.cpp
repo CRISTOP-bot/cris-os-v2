@@ -1,8 +1,32 @@
 #include "shell.h"
 #include "console.h"
 #include "keyboard.h"
+#include "fs.h"
 
 extern "C" long calc_eval(const char* s);
+
+static int kstrcmp(const char* a, const char* b) {
+    while (*a && *b) {
+        if (*a != *b) return *a - *b;
+        ++a; ++b;
+    }
+    return *a - *b;
+}
+
+static int kstrncmp(const char* a, const char* b, int n) {
+    for (int i = 0; i < n; ++i) {
+        if (a[i] != b[i]) return (unsigned char)a[i] - (unsigned char)b[i];
+        if (!a[i]) return 0;
+    }
+    return 0;
+}
+
+static void print_file_content(const void* data, unsigned int size) {
+    const char* bytes = (const char*)data;
+    for (unsigned int i = 0; i < size; ++i) {
+        console_putchar(bytes[i] ? bytes[i] : '\n');
+    }
+}
 
 void shell_run() {
     char buf[256];
@@ -10,24 +34,42 @@ void shell_run() {
         console_print("> ");
         int n = keyboard_readline(buf, sizeof(buf));
         if (n == 0) continue;
-        // support '=' as '+' for convenience
         for (int i=0; buf[i]; ++i) if (buf[i]=='=') buf[i] = '+';
-        if (buf[0]=='h' && buf[1]=='e' && buf[2]=='l' && buf[3]=='p' && buf[4]==0) {
-            console_print("help: help clear calc reboot\n");
+        if (kstrcmp(buf, "help") == 0) {
+            console_print("help: help clear ls cat calc reboot\n");
             continue;
         }
-        if (buf[0]=='c' && buf[1]=='l' && buf[2]=='e' && buf[3]=='a' && buf[4]=='r') {
+        if (kstrcmp(buf, "clear") == 0) {
             console_clear();
             continue;
         }
-        if (buf[0]=='r' && buf[1]=='e' && buf[2]=='b' && buf[3]=='o' && buf[4]=='o' && buf[5]=='t') {
+        if (kstrcmp(buf, "ls") == 0) {
+            unsigned int count = fs_file_count();
+            for (unsigned int i = 0; i < count; ++i) {
+                const FSFile* file = fs_file_at(i);
+                if (!file) continue;
+                console_print(file->name);
+                console_print("\n");
+            }
+            continue;
+        }
+        if (kstrncmp(buf, "cat ", 4) == 0) {
+            const FSFile* file = fs_find(buf + 4);
+            if (!file) {
+                console_print("File not found\n");
+            } else {
+                print_file_content(file->data, file->size);
+                console_print("\n");
+            }
+            continue;
+        }
+        if (kstrcmp(buf, "reboot") == 0) {
             console_print("Rebooting...\n");
             asm volatile ("cli;hlt");
         }
-        // default: try calculate
         long res = calc_eval(buf);
-        // itoa
-        char out[32]; int p=0; long x = res; if (x==0) out[p++]='0';
+        char out[32]; int p=0; long x = res;
+        if (x==0) out[p++]='0';
         int neg=0; if (x<0) { neg=1; x=-x; }
         char rev[32]; int rp=0; while (x>0) { rev[rp++]= '0' + (x%10); x/=10; }
         if (neg) out[p++]='-';

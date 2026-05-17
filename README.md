@@ -1,74 +1,79 @@
-# MiniOS — Calculadora (C / Assembly)
+# CrisOS v2
 
-MiniOS es un pequeño kernel de ejemplo escrito en C++/C y ensamblador x86. Contiene una calculadora de enteros (implementada en `src/calc.c`) y una rutina de ejemplo en ensamblador (`src/math_asm.S`). El proyecto está diseñado para compilarse en modo freestanding y generarse como una imagen ISO booteable con GRUB.
+CrisOS v2 es un sistema operativo experimental i386 escrito en C/C++ y ensamblador, diseñado para ejecutarse como una imagen ISO booteable con GRUB.
 
-Características
-- Escrita en C++/C y ensamblador x86 (freestanding).
-- Interfaz por consola y un modo gráfico muy simple (texto en VGA).
-- Evaluador de expresiones aritméticas (soporta + - * / y paréntesis).
+## Características principales
 
-Archivos importantes
+- Kernel freestanding en 32-bit con soporte VGA texto.
+- Shell interactiva con comandos estilo Linux:
+  - `pwd`, `cd`, `ls`, `mkdir`, `rmdir`, `rm`, `touch`, `cp`, `mv`, `cat`, `grep`, `echo`, `uname`, `whoami`, `df`, `stat`
+- Sistema de archivos virtual VFS/CRFS con rutas anidadas y directorios.
+- Gestor de servicios estilo `systemd` con `systemctl` y unidades.
+- Mini gestor de arranque `bootctl` para gestionar entradas de boot.
+- GUI de texto mejorada con menú interactivo y vista de estado.
+- Driver de teclado PS/2 con soporte de Shift, Caps Lock, Ctrl y Alt.
+- Soporte de operaciones en ensamblador (`asm add|sub|mul|div`) y aplicación de calculadora separada con `calc <expresión>`.
+
+## Estructura del proyecto
+
 - `boot/boot.S` — Multiboot header y arranque inicial.
-- `linker.ld` — Script del enlazador (dirección de carga).
-- `src/kernel.cpp` — Lógica principal del kernel, entrada, VGA, teclado.
-- `src/calc.c` / `src/calc.h` — Evaluador de expresiones (C).
-- `src/math_asm.S` — Rutina `add_asm` en ensamblador.
-- `Makefile` — Reglas para compilar y crear `iso`.
+- `linker.ld` — Script del enlazador.
+- `src/kernel.cpp` — Entrada del kernel y ciclo principal.
+- `src/console.cpp` / `src/console.h` — Consola VGA y utilidades de texto.
+- `src/keyboard.cpp` / `src/keyboard.h` — Driver de teclado PS/2.
+- `src/fs.cpp` / `src/fs.h` — Carga de rootfs desde la imagen.
+- `src/vfs.cpp` / `src/vfs.h` — Capa virtual de sistema de archivos.
+- `src/shell.cpp` / `src/shell.h` — Shell interactiva con comandos Linux-like.
+- `src/gui.cpp` / `src/gui.h` — GUI de texto y menú.
+- `src/systemd.cpp` / `src/systemd.h` — Gestor de servicios básico.
+- `src/boot.cpp` / `src/boot.h` — Soporte para `bootctl`.
+- `src/asm_utils.S` — Operaciones aritméticas en ensamblador.
+- `src/calc.c` — Evaluador de expresiones en C.
+- `tools/build_rootfs.py` — Generador de imagen rootfs.
 
-Cómo compilar
+## Requisitos
+
+- `gcc` / `g++` con soporte `-m32` o toolchain cruzada `i686-elf-gcc`, `i686-elf-g++`, `i686-elf-ld`.
+- `grub-mkrescue` para generar la ISO booteable.
+- `qemu-system-i386` para emulación y prueba.
+
+## Compilación
 
 ```bash
 make
 make iso
 ```
 
-Cómo ejecutar en QEMU
+Si tu sistema no tiene toolchain cruzada, el `Makefile` busca `i686-elf-g++` / `i686-elf-gcc` y usa `g++` / `gcc` en su lugar.
+
+## Ejecución
+
+```bash
+make run
+```
+
+O bien:
 
 ```bash
 make iso
 qemu-system-i386 -cdrom os.iso -m 512M -serial stdio
 ```
 
-Descargas
+## Comandos disponibles en la shell
 
-- [Descargar os.iso](./os.iso) — imagen ISO booteable (incluida en este repositorio).
+- Navegación y archivos: `pwd`, `cd`, `ls`, `mkdir`, `rmdir`, `rm`, `touch`, `cp`, `mv`, `cat`
+- Búsqueda y texto: `grep`, `echo`
+- Sistema: `uname`, `whoami`, `df`, `stat`, `reboot`
+- Servicios: `systemctl`, `bootctl`
+- GUI: `gui`
+- ASM: `asm add|sub|mul|div <a> <b>`
 
-Licencia
+## Notas adicionales
 
-Este proyecto está disponible sin licencia explícita; añade una licencia si quieres usarlo públicamente.
-# MiniOS (ASM + C++)
+- El rootfs se genera con `tools/build_rootfs.py` y empaqueta el contenido de `rootfs/`.
+- El sistema de archivos soporta rutas absolutas y relativas con `.` y `..`.
+- La GUI es una interfaz de texto simple con acceso rápido a la shell y estado del sistema.
 
-Proyecto mínimo de un sistema operativo en ensamblador y C++ con una calculadora integrada.
+## Licencia
 
-Requisitos (Linux):
-- Herramientas para compilación cruzada: `i686-elf-gcc`, `i686-elf-g++`, `i686-elf-ld` (o equivalente)
-- `grub-mkrescue` (para crear ISO) y `xorriso`/`grub` paquetes
-- `qemu-system-i386` para probar en emulación
-
-Construcción:
-
-1. En la raíz del proyecto ejecutar:
-
-```bash
-make
-make echo-iso   # crea os.iso si tiene grub-mkrescue
-make run        # arranca en QEMU
-```
-
-Notas:
-- El kernel es un ejemplo muy básico 32-bit (Multiboot) que imprime en pantalla usando VGA text mode.
-- El driver de teclado es muy simple y usa polling del controlador PS/2 (puede no funcionar en todas las máquinas virtuales, pero sí en QEMU).
-- Para introducir la suma puede usarse `=` si el mapeo de teclado no permite `+` directamente.
-
-Estructura:
-- `boot/boot.S` - cabecera multiboot y entry
-- `src/kernel.cpp` - kernel en C++ con consola y calculadora
-- `linker.ld` - script de enlace
-- `iso/boot/grub/grub.cfg` - configuración GRUB
-- `Makefile` - reglas para compilar y generar ISO
-
-Si quieres, puedo:
-- Añadir soporte para más operadores y paréntesis
-- Hacer manejo de teclado más completo (mayúsculas/shift)
-- Poner el proyecto en Git y crear un script de instalación de toolchain
-# cris-os-v2
+El proyecto actualmente no incluye una licencia explícita. Añade una licencia si quieres compartirlo públicamente.

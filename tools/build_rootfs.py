@@ -6,26 +6,27 @@ import sys
 MAGIC = b'CRFS'
 VERSION = 1
 HEADER_FMT = '<4sIII'
-ENTRY_FMT = '<16sII'
+ENTRY_FMT = '<64sII'
 HEADER_SIZE = struct.calcsize(HEADER_FMT)
 ENTRY_SIZE = struct.calcsize(ENTRY_FMT)
 
 
 def pad_name(name):
     data = name.encode('utf-8')
-    if len(data) > 15:
+    if len(data) > 63:
         raise ValueError('File name too long: %s' % name)
-    return data + b'\x00' * (16 - len(data))
+    return data + b'\x00' * (64 - len(data))
 
 
 def build_rootfs(rootdir, output_path):
     files = []
-    for filename in sorted(os.listdir(rootdir)):
-        path = os.path.join(rootdir, filename)
-        if os.path.isfile(path):
+    for root, _, filenames in os.walk(rootdir):
+        for filename in sorted(filenames):
+            path = os.path.join(root, filename)
+            rel_path = os.path.relpath(path, rootdir).replace(os.sep, '/')
             with open(path, 'rb') as f:
                 data = f.read()
-            files.append((filename, data))
+            files.append((rel_path, data))
 
     offset = HEADER_SIZE + len(files) * ENTRY_SIZE
     offset = (offset + 3) & ~3

@@ -11,7 +11,7 @@ struct FSHeader {
 };
 
 struct FSEntry {
-    char name[16];
+    char name[64];
     uint32_t offset;
     uint32_t size;
 };

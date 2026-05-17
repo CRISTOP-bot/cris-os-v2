@@ -1,13 +1,11 @@
-// PS/2 keyboard handling (scancode set 1) - minimal
+// PS/2 keyboard handling (scancode set 1) with extended support
 #include "keyboard.h"
 #include "console.h"
+#include "asm.h"
 
 typedef unsigned char u8;
-static inline unsigned char inb(unsigned short port) {
-    unsigned char ret;
-    asm volatile ("inb %1, %0" : "=a" (ret) : "Nd" (port));
-    return ret;
-}
+
+extern "C" unsigned char inb(unsigned short port);
 
 static const char scancode_map[128] = {
   0,  27,'1','2','3','4','5','6','7','8','9','0','-','=','\b',
@@ -23,17 +21,63 @@ static const char shift_map[128] = {
  '|','Z','X','C','V','B','N','M','<','>','?',0,'*',0,' ',
 };
 
+static bool shift_state = false;
+static bool caps_lock = false;
+static bool ctrl_state = false;
+static bool alt_state = false;
+static bool extended_code = false;
+
+void keyboard_init() {
+    shift_state = false;
+    caps_lock = false;
+    ctrl_state = false;
+    alt_state = false;
+    extended_code = false;
+}
+
+static char normalize_key(char c) {
+    if (c >= 'a' && c <= 'z') {
+        if (caps_lock ^ shift_state) {
+            return c - 'a' + 'A';
+        }
+    } else if (c >= 'A' && c <= 'Z') {
+        if (caps_lock && !shift_state) {
+            return c - 'A' + 'a';
+        }
+    }
+    return c;
+}
+
 static char read_scancode_char() {
-    static bool shift = false;
     while (!(inb(0x64) & 1)) ;
     unsigned char sc = inb(0x60);
     if (sc == 0) return 0;
-    if (sc == 0x2A || sc == 0x36) { shift = true; return 0; }
-    if (sc == 0xAA || sc == 0xB6) { shift = false; return 0; }
-    if (sc & 0x80) return 0;
+    if (sc == 0xE0) {
+        extended_code = true;
+        return 0;
+    }
+    if (sc & 0x80) {
+        sc &= 0x7F;
+        if (extended_code) {
+            extended_code = false;
+            return 0;
+        }
+        if (sc == 0x2A || sc == 0x36) shift_state = false;
+        if (sc == 0x1D) ctrl_state = false;
+        if (sc == 0x38) alt_state = false;
+        return 0;
+    }
+    if (extended_code) {
+        extended_code = false;
+        return 0;
+    }
+    if (sc == 0x2A || sc == 0x36) { shift_state = true; return 0; }
+    if (sc == 0x3A) { caps_lock = !caps_lock; return 0; }
+    if (sc == 0x1D) { ctrl_state = true; return 0; }
+    if (sc == 0x38) { alt_state = true; return 0; }
     if (sc < 128) {
-        if (shift) return shift_map[sc];
-        return scancode_map[sc];
+        char c = shift_state ? shift_map[sc] : scancode_map[sc];
+        return normalize_key(c);
     }
     return 0;
 }
@@ -47,8 +91,8 @@ int keyboard_readline(char* buf, int maxlen) {
     while (1) {
         char c = read_scancode_char();
         if (!c) continue;
-        if (c == '\n') { console_putchar('\n'); buf[pos]=0; return pos; }
-        if (c == '\b') { if (pos>0) { pos--; console_putchar('\b'); } continue; }
-        if (pos < maxlen-1) { buf[pos++] = c; console_putchar(c); }
+        if (c == '\n') { console_putchar('\n'); buf[pos] = 0; return pos; }
+        if (c == '\b') { if (pos > 0) { pos--; console_putchar('\b'); } continue; }
+        if (pos < maxlen - 1) { buf[pos++] = c; console_putchar(c); }
     }
 }

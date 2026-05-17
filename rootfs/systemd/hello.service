@@ -1,0 +1,6 @@
+[Unit]
+Description=Hello service for CrisOS
+WantedBy=default.target
+
+[Service]
+ExecStart=echo Hello from systemd service

@@ -1,0 +1,54 @@
+name:nano-cris
+version:1.0.0
+description:Editor de texto simple para CrisOS
+arch:i386
+maintainer:Cristopher
+license:MIT
+dependencies:libc,termcap
+files:bin/nano-cris,share/nano-cris/help.txt
+size:32000
+repo:main
+---
+name:editor-lite
+version:0.5.0
+description:Editor de texto ligero para CrisOS
+arch:i386
+maintainer:CrisOS Team
+license:MIT
+dependencies:
+files:bin/editor-lite
+size:12500
+repo:main
+---
+name:textpad
+version:0.9.1
+description:Editor de texto basado en terminal para CrisOS
+arch:i386
+maintainer:CrisOS Team
+license:Apache-2.0
+dependencies:libc
+files:bin/textpad
+size:21200
+repo:main
+---
+name:libc
+version:1.0.0
+description:Biblioteca estándar mínima para CrisOS
+arch:i386
+maintainer:CrisOS Team
+license:MIT
+dependencies:
+files:lib/libc.so
+size:45000
+repo:main
+---
+name:termcap
+version:1.2.3
+description:Biblioteca de compatibilidad con terminal para CrisOS
+arch:i386
+maintainer:CrisOS Team
+license:BSD-2-Clause
+dependencies:
+files:lib/termcap.so
+size:18000
+repo:main

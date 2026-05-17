@@ -1,0 +1,6 @@
+desktop-color: "#0B1F3F"
+title-color: "#FFFFFF/#0B1F3F"
+selected-item-color: "#000000/#B5D0FF"
+item-color: "#FFFFFF/#0B1F3F"
+terminal-box-background-color: "#0B1F3F"
+terminal-box-border-color: "#B5D0FF"

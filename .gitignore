@@ -2,3 +2,7 @@ build/
 os.iso
 iso/boot/kernel.bin
 iso/boot/rootfs.bin
+
+# Python cache
+__pycache__/
+*.py[cod]

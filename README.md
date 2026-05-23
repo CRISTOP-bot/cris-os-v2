@@ -1,26 +1,74 @@
 CrisOS v2
 
-> CrisOS v2 es un sistema operativo experimental i386 escrito en C / C++ / ensamblador, diseñado para arrancar como una ISO booteable con GRUB.
-
-
-
 <p align="center">
-  <!-- Reemplaza estas imágenes por tus GIFs reales -->
-  <img src="docs/gifs/boot.gif" alt="CrisOS v2 boot" width="48%" />
-  <img src="docs/gifs/shell.gif" alt="CrisOS v2 shell" width="48%" />
+  <img src="docs/images/banner.png" alt="CrisOS v2 banner" width="100%" />
 </p><p align="center">
   <img src="https://img.shields.io/badge/architecture-i386-blue?style=for-the-badge" />
   <img src="https://img.shields.io/badge/language-C%2FC%2B%2B%2FASM-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/boot-GRUB-purple?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/license-GPLv3-green?style=for-the-badge" />
   <img src="https://img.shields.io/badge/status-experimental-red?style=for-the-badge" />
-</p>
+</p>> CrisOS v2 is a modular experimental operating system for i386, written in C / C++ / Assembly, designed to boot as a GRUB-based ISO.
+
+
+
+
 ---
 
-✨ Características
+📚 Table of Contents
 
-Kernel freestanding 32-bit con salida por VGA texto.
+Overview
 
-Shell interactiva con comandos estilo Linux:
+Features
+
+Demo
+
+GIFs
+
+Architecture Overview
+
+Performance / Hardware Requirements
+
+Project Structure
+
+Build
+
+Run
+
+Shell Commands
+
+Boot Flow
+
+Rootfs
+
+Roadmap
+
+Known Issues / Limitations
+
+Credits / Acknowledgements
+
+About the Author
+
+License
+
+
+
+---
+
+✨ Overview
+
+CrisOS v2 is an experimental operating system focused on modularity, readability, and a classic UNIX/Linux-inspired workflow. It includes a text-mode interface, a custom shell, a virtual filesystem, a basic service manager, and support for boot-time modules loaded through Multiboot.
+
+The goal is simple: build a small but real OS with personality, structure, and room to grow.
+
+
+---
+
+🔥 Features
+
+Freestanding 32-bit kernel with VGA text output.
+
+Interactive shell with Linux-like commands:
 
 pwd, cd, ls, mkdir, rmdir, rm, touch, cp, mv, cat
 
@@ -30,123 +78,182 @@ systemctl, bootctl, gui
 
 asm add|sub|mul|div <a> <b>
 
-calc <expresión>
+calc <expression>
 
 
-VFS/CRFS con rutas anidadas, directorios y soporte de árbol de archivos.
+VFS / CRFS with nested paths, directories, and tree-based file management.
 
-Rootfs cargado como módulo Multiboot desde la ISO.
+Rootfs loaded as a Multiboot module from the ISO.
 
-Gestor de servicios estilo systemd.
+Basic service manager inspired by systemd.
 
-Mini gestor de arranque bootctl.
+Mini boot manager with bootctl support.
 
-GUI de texto con menú interactivo y vista de estado.
+Text-based GUI with menu and system status view.
 
-Driver de teclado PS/2 con soporte para Shift, Caps Lock, Ctrl y Alt.
+PS/2 keyboard driver with Shift, Caps Lock, Ctrl, and Alt support.
 
-Operaciones en ensamblador y calculadora separada para expresiones.
+Assembly helpers for arithmetic operations.
 
-Arquitectura pensada para crecer hacia un sistema más completo, modular y mantenible.
+Standalone calculator for expression evaluation.
 
-
-
----
-
-📸 Vista previa
-
-> Todavía no hay capturas estáticas. Puedes arrancar con GIFs y un banner para que el repo ya se vea vivo y potente 😎
-
+Designed to grow into a more complete, modular, maintainable OS.
 
 
 
 ---
 
-🎬 GIFs recomendados
+🎬 Demo
 
-Guarda tus animaciones en docs/gifs/ y enlázalas aquí:
+================================
+        CrisOS Kernel
+================================
 
-docs/gifs/boot.gif → arranque del sistema
+[ OK ] Console initialized
+[ OK ] Keyboard initialized
+[ OK ] Boot manager initialized
+[ OK ] Service manager initialized
+[ OK ] LCP package manager initialized
+[ OK ] Rootfs mounted
+[ OK ] VFS initialized
 
-docs/gifs/shell.gif → shell interactiva
+Launching shell...
 
-docs/gifs/fs.gif → navegación del VFS/CRFS
+crisOS:/# ls /
+bin  dev  home  root  tmp
 
-docs/gifs/gui.gif → menú y estado del sistema
+crisOS:/# asm add 7 5
+12
 
-docs/gifs/systemctl.gif → gestión de servicios
-
-
-Si no tienes GIFs todavía, puedes empezar con capturas y luego convertir un video corto en GIF.
-
-
----
-
-🧱 Estructura del proyecto
-
-boot/boot.S             # Multiboot header y arranque inicial
-linker.ld               # Script del enlazador
-src/kernel.cpp          # Entrada del kernel y ciclo principal
-src/console.cpp/.h      # Consola VGA y utilidades de texto
-src/keyboard.cpp/.h     # Driver de teclado PS/2
-src/fs.cpp/.h           # Carga de rootfs desde la imagen
-src/vfs.cpp/.h          # Capa virtual de sistema de archivos
-src/shell.cpp/.h        # Shell interactiva con comandos Linux-like
-src/gui.cpp/.h          # GUI de texto y menú
-src/systemd.cpp/.h      # Gestor de servicios básico
-src/boot.cpp/.h         # Soporte para bootctl
-src/asm_utils.S         # Operaciones aritméticas en ensamblador
-src/calc.c              # Evaluador de expresiones en C
-tools/build_rootfs.py   # Generador de imagen rootfs
-rootfs/                 # Archivos que se empaquetan en el sistema
+crisOS:/# calc (12+3)*4
+60
 
 
 ---
 
-⚙️ Requisitos
+🎬 GIFs
 
-gcc / g++ con soporte -m32 o toolchain cruzada:
-
-i686-elf-gcc
-
-i686-elf-g++
-
-i686-elf-ld
+> Add your animated demos in docs/gifs/ to make the repo feel alive and polished.
 
 
-grub-mkrescue para crear la ISO booteable.
 
-qemu-system-i386 para probar el sistema en emulación.
+Recommended files:
 
-make.
+docs/gifs/boot.gif → system boot
+
+docs/gifs/shell.gif → interactive shell
+
+docs/gifs/fs.gif → VFS / CRFS navigation
+
+docs/gifs/gui.gif → menu and status view
+
+docs/gifs/systemctl.gif → service manager
 
 
-> Si no tienes toolchain cruzada, el Makefile intenta usar gcc / g++ localmente cuando sea posible.
+Example layout:
 
+<p align="center">
+  <img src="docs/gifs/boot.gif" alt="CrisOS v2 boot" width="48%" />
+  <img src="docs/gifs/shell.gif" alt="CrisOS v2 shell" width="48%" />
+</p>
+---
+
+🧠 Architecture Overview
+
+Simple view of the system:
+
+GRUB
+  └── Multiboot
+       └── kernel.cpp
+            ├── console
+            ├── keyboard
+            ├── fs / vfs
+            ├── systemd
+            ├── bootctl
+            └── shell
+                 ├── commands
+                 ├── gui
+                 └── calc / asm
+
+This keeps the kernel modular and makes each subsystem easier to evolve independently.
+
+
+---
+
+⚙️ Performance / Hardware Requirements
+
+Minimum
+
+CPU: i386-compatible processor
+
+RAM: 64 MB
+
+Display: VGA text mode supported
+
+Boot: GRUB / Multiboot-compatible environment
+
+
+Recommended
+
+CPU: i386 or x86 emulator/VM with stable virtualization support
+
+RAM: 256 MB or more
+
+Emulator: QEMU recommended for development and testing
+
+Boot media: ISO image
+
+
+Development notes
+
+qemu-system-i386 is the best option for fast iteration.
+
+Real hardware support may vary depending on bootloader, keyboard, and device behavior.
 
 
 
 ---
 
-🛠️ Compilación
+🧱 Project Structure
+
+boot/boot.S             # Multiboot header and early boot
+linker.ld               # Linker script
+src/kernel.cpp          # Kernel entry point and main loop
+src/console.cpp/.h      # VGA console and text utilities
+src/keyboard.cpp/.h     # PS/2 keyboard driver
+src/fs.cpp/.h           # Rootfs loader
+src/vfs.cpp/.h          # Virtual filesystem layer
+src/shell.cpp/.h        # Linux-like interactive shell
+src/gui.cpp/.h          # Text GUI and menu
+src/systemd.cpp/.h      # Basic service manager
+src/boot.cpp/.h         # Bootctl support
+src/asm_utils.S         # Assembly arithmetic helpers
+src/calc.c              # Expression evaluator
+tools/build_rootfs.py   # Rootfs image generator
+rootfs/                 # Files packed into the OS image
+
+
+---
+
+🛠️ Build
 
 make
 make iso
 
-Si quieres limpiar artefactos:
+To clean build artifacts:
 
 make clean
 
 
 ---
 
-▶️ Ejecución
+▶️ Run
 
-Con Make
+With Make
 
 make run
 
-Manualmente con QEMU
+Manually with QEMU
 
 make iso
 qemu-system-i386 -cdrom os.iso -m 512M -serial stdio
@@ -154,9 +261,9 @@ qemu-system-i386 -cdrom os.iso -m 512M -serial stdio
 
 ---
 
-🧭 Shell: comandos disponibles
+🧭 Shell Commands
 
-Navegación y archivos
+Files and navigation
 
 pwd
 
@@ -179,14 +286,14 @@ mv
 cat
 
 
-Texto y búsqueda
+Text and search
 
 grep
 
 echo
 
 
-Sistema
+System
 
 uname
 
@@ -199,19 +306,19 @@ stat
 reboot
 
 
-Servicios y arranque
+Services and boot
 
 systemctl
 
 bootctl
 
 
-Interfaz gráfica
+Interface
 
 gui
 
 
-ASM y matemáticas
+ASM and math
 
 asm add <a> <b>
 
@@ -221,10 +328,10 @@ asm mul <a> <b>
 
 asm div <a> <b>
 
-calc <expresión>
+calc <expression>
 
 
-Ejemplos:
+Examples:
 
 asm add 7 5
 calc (12+3)*4
@@ -235,27 +342,27 @@ systemctl status
 
 ---
 
-🔌 Cómo funciona el arranque
+🔌 Boot Flow
 
-1. GRUB carga el kernel y el módulo rootfs.
-
-
-2. kmain() inicializa la consola.
+1. GRUB loads the kernel and the rootfs module.
 
 
-3. Se activa el teclado PS/2.
+2. kmain() initializes the console.
 
 
-4. Se monta el rootfs desde Multiboot.
+3. The PS/2 keyboard is activated.
 
 
-5. Se inicializa el VFS.
+4. The rootfs is mounted from Multiboot.
 
 
-6. Se levantan servicios y el gestor de arranque.
+5. The VFS is initialized.
 
 
-7. Se lanza la shell interactiva.
+6. Services and boot management are brought up.
+
+
+7. The interactive shell starts.
 
 
 
@@ -264,91 +371,96 @@ systemctl status
 
 🗂️ Rootfs
 
-El rootfs se genera con tools/build_rootfs.py y empaqueta el contenido de rootfs/.
+The root filesystem is generated with tools/build_rootfs.py and packages the contents of rootfs/.
 
-Esto permite que el sistema arranque con archivos, comandos y estructura propia sin depender de un sistema operativo anfitrión.
-
-
----
-
-🧠 Ideas de desarrollo futuro
-
-Multitarea cooperativa o preventiva
-
-Scheduler real
-
-Soporte de mouse PS/2
-
-Framebuffer gráfico
-
-Ventanas y UI más avanzada
-
-Red básica TCP/IP
-
-Reproducción de sonido
-
-Cargador ELF
-
-Package manager real
-
-Editor de texto nativo
-
-Scripting para la shell
-
-Mejoras en permisos y usuarios
-
+That lets the OS boot with its own files, commands, and directory structure without depending on the host operating system.
 
 
 ---
 
-🐛 Estado actual
+🚀 Roadmap
 
-CrisOS v2 es un proyecto experimental. Puede contener funciones incompletas, partes en desarrollo o comportamiento cambiante mientras evoluciona.
+[ ] Cooperative or preemptive multitasking
 
-Aun así, el objetivo es claro: construir un sistema operativo pequeño, modular y con identidad propia.
+[ ] Real scheduler
 
+[ ] PS/2 mouse support
 
----
+[ ] Framebuffer graphics
 
-📌 Notas
+[ ] More advanced windows / UI
 
-El sistema está pensado para ejecutarse en i386.
+[ ] Basic TCP/IP networking
 
-Se usa una arquitectura inspirada en flujos clásicos de UNIX/Linux.
+[ ] Sound playback
 
-El proyecto está orientado a aprendizaje, experimentación y crecimiento progresivo.
+[ ] ELF loader
+
+[ ] Real package manager
+
+[ ] Native text editor
+
+[ ] Shell scripting
+
+[ ] Better permissions and user support
 
 
 
 ---
 
-🤝 Contribuciones
+⚠️ Known Issues / Limitations
 
-Las ideas, pruebas, mejoras, reportes de errores y sugerencias son bienvenidas.
+Experimental code may still contain incomplete or changing behavior.
 
-Si vas a colaborar, intenta mantener:
+Real hardware behavior can differ from QEMU.
 
-estilo consistente,
+VGA text mode is intentionally simple and not meant to be a full GUI system.
 
-módulos pequeños,
+File system and service features are intentionally minimal compared to a full Linux environment.
 
-código legible,
-
-y cambios bien documentados.
+Some commands and subsystems are still evolving as the project grows.
 
 
 
 ---
 
-📄 Licencia
+🛠️ Credits / Acknowledgements
 
-Actualmente el proyecto no incluye una licencia explícita.
+Built with the help of the following tools and platforms:
 
-Si planeas publicarlo en GitHub, añade una licencia para dejar claro cómo se puede usar, modificar y compartir.
+GRUB
+
+GCC / G++
+
+QEMU
+
+GNU Make
+
+Multiboot
+
+OSDev-style bare metal development workflows
+
+
+
+---
+
+👨‍💻 About the Author
+
+GitHub: CRISTOP-bot
+Discord: cristopher078140
+Display name: Cristopher Borjas
+TikTok: @cristopherborjas1
+
+
+---
+
+📄 License
+
+This project is licensed under the GNU General Public License v3.0 (GPLv3).
 
 
 ---
 
 <p align="center">
-  Hecho con ❤️, C, C++ y un poco de caos controlado.
+  Made with ❤️, C, C++, Assembly, and a little controlled chaos.
 </p>

@@ -74,9 +74,10 @@ static bool grep_file(const char* path, const char* pattern) {
             ++p;
         }
         int line_len = (int)(p - line_start);
-        for (int i = 0; i + (int)kstrlen(pattern) <= line_len; ++i) {
+        int pattern_len = kstrlen(pattern);
+        for (int i = 0; i + pattern_len <= line_len; ++i) {
             bool ok = true;
-            for (int j = 0; pattern[j]; ++j) {
+            for (int j = 0; j < pattern_len; ++j) {
                 if (line_start[i + j] != pattern[j]) {
                     ok = false;
                     break;
@@ -363,15 +364,15 @@ void shell_run() {
             }
         }
         if (kstrcmp(cmd, "lcp") == 0) {
-            lcp_handle_command("");
+            lcp_handle_command(rest);
             continue;
         }
         if (kstrcmp(cmd, "systemctl") == 0) {
-            systemd_handle_command(arg1);
+            systemd_handle_command(rest);
             continue;
         }
         if (kstrcmp(cmd, "bootctl") == 0) {
-            boot_handle_command(arg1);
+            boot_handle_command(rest);
             continue;
         }
         if (kstrcmp(cmd, "gui") == 0) {

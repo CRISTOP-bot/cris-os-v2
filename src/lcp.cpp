@@ -285,6 +285,7 @@ static void lcp_print_line(const char* label, const char* value) {
     }
     buffer[pos] = '\0';
     console_print(buffer);
+    console_print("\n");
 }
 
 static void lcp_format_number(unsigned int value, char* out, size_t max_len) {
@@ -331,6 +332,7 @@ static void lcp_print_package_info(const LcpPackage* pkg) {
     }
     size_line[pos] = '\0';
     console_print(size_line);
+    console_print("\n");
     if (pkg->dependency_count == 0) {
         lcp_print_line("dependencies: ", "none");
     } else {
@@ -354,23 +356,24 @@ static void lcp_print_package_info(const LcpPackage* pkg) {
 }
 
 static void lcp_print_help() {
-    console_print("lcp commands:");
-    console_print("  lcp help [command]");
-    console_print("  lcp search <term]");
-    console_print("  lcp info <package]");
-    console_print("  lcp install <package]");
-    console_print("  lcp remove <package]");
-    console_print("  lcp update");
-    console_print("  lcp upgrade [package]");
-    console_print("  lcp list [--installed|--available|--upgradable]");
-    console_print("  lcp files <package]");
-    console_print("  lcp depends <package]");
-    console_print("  lcp verify <package]");
+    console_print("lcp commands:\n");
+    console_print("  lcp help [command]\n");
+    console_print("  lcp search <term]\n");
+    console_print("  lcp info <package]\n");
+    console_print("  lcp install <package]\n");
+    console_print("  lcp remove <package]\n");
+    console_print("  lcp update\n");
+    console_print("  lcp upgrade [package]\n");
+    console_print("  lcp list [--installed|--available|--upgradable]\n");
+    console_print("  lcp files <package]\n");
+    console_print("  lcp depends <package]\n");
+    console_print("  lcp verify <package]\n");
 }
 
 static void lcp_list_available() {
     for (size_t i = 0; i < package_count; ++i) {
         console_print(packages[i].name);
+        console_print("\n");
     }
 }
 
@@ -378,6 +381,7 @@ static void lcp_list_installed() {
     for (size_t i = 0; i < package_count; ++i) {
         if (packages[i].installed) {
             console_print(packages[i].name);
+            console_print("\n");
         }
     }
 }
@@ -407,15 +411,16 @@ static void lcp_install_package(LcpPackage* pkg, bool no_deps) {
     }
     pkg->installed = true;
     console_print("Installed "); console_print(pkg->name);
+    console_print("\n");
 }
 
 static void lcp_remove_package(LcpPackage* pkg, bool purge) {
     if (!pkg->installed) {
-        console_print("Package is not installed.");
+        console_print("Package is not installed.\n");
         return;
     }
     if (lcp_has_dependents(pkg->name)) {
-        console_print("Cannot remove package because another installed package depends on it.");
+        console_print("Cannot remove package because another installed package depends on it.\n");
         return;
     }
     pkg->installed = false;
@@ -423,14 +428,16 @@ static void lcp_remove_package(LcpPackage* pkg, bool purge) {
     if (purge) {
         console_print(" and purged configuration.");
     }
+    console_print("\n");
 }
 
 static void lcp_upgrade_package(LcpPackage* pkg) {
     if (!pkg->installed) {
-        console_print("Package is not installed.");
+        console_print("Package is not installed.\n");
         return;
     }
     console_print("Upgraded "); console_print(pkg->name);
+    console_print("\n");
 }
 
 static void lcp_show_files(LcpPackage* pkg) {

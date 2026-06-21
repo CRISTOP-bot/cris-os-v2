@@ -358,16 +358,16 @@ static void lcp_print_package_info(const LcpPackage* pkg) {
 static void lcp_print_help() {
     console_print("lcp commands:\n");
     console_print("  lcp help [command]\n");
-    console_print("  lcp search <term]\n");
-    console_print("  lcp info <package]\n");
-    console_print("  lcp install <package]\n");
-    console_print("  lcp remove <package]\n");
+    console_print("  lcp search <term>\n");
+    console_print("  lcp info <package>\n");
+    console_print("  lcp install <package>\n");
+    console_print("  lcp remove <package>\n");
     console_print("  lcp update\n");
     console_print("  lcp upgrade [package]\n");
     console_print("  lcp list [--installed|--available|--upgradable]\n");
-    console_print("  lcp files <package]\n");
-    console_print("  lcp depends <package]\n");
-    console_print("  lcp verify <package]\n");
+    console_print("  lcp files <package>\n");
+    console_print("  lcp depends <package>\n");
+    console_print("  lcp verify <package>\n");
 }
 
 static void lcp_list_available() {
@@ -447,6 +447,7 @@ static void lcp_show_files(LcpPackage* pkg) {
     }
     for (size_t i = 0; i < pkg->file_count; ++i) {
         console_print(pkg->files[i]);
+        console_print("\n");
     }
 }
 
@@ -461,6 +462,7 @@ static void lcp_show_dependencies(LcpPackage* pkg) {
     }
     for (size_t i = 0; i < pkg->dependency_count; ++i) {
         console_print(pkg->dependencies[i]);
+        console_print("\n");
     }
 }
 
@@ -481,6 +483,7 @@ static void lcp_search(const char* term) {
     for (size_t i = 0; i < package_count; ++i) {
         if (lcp_contains(packages[i].name, term) || lcp_contains(packages[i].description ? packages[i].description : "", term)) {
             console_print(packages[i].name);
+            console_print("\n");
             found = true;
         }
     }

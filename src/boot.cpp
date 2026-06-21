@@ -149,6 +149,14 @@ static int bt_strncmp(const char* a, const char* b, size_t n) {
     return 0;
 }
 
+static bool bt_streq(const char* a, const char* b) {
+    while (*a && *b) {
+        if (*a != *b) return false;
+        ++a; ++b;
+    }
+    return *a == *b;
+}
+
 static BootUnit* bt_find_unit(const char* name) {
     size_t name_len = bt_strlen(name);
     for (size_t i = 0; i < unit_count; ++i) {
@@ -248,18 +256,18 @@ int boot_handle_command(const char* args) {
     char command[32];
     char target[MAX_BOOT_NAME];
     bt_parse_args(args, command, target);
-    if (command[0] == '\0' || bt_strncmp(command, "help", 4) == 0) {
+    if (command[0] == '\0' || bt_streq(command, "help")) {
         bt_print_help();
         return 0;
     }
-    if (bt_strncmp(command, "list-units", 10) == 0) {
+    if (bt_streq(command, "list-units")) {
         for (size_t i = 0; i < unit_count; ++i) {
             bt_print_unit(&units[i]);
             bt_print("\n");
         }
         return 0;
     }
-    if (bt_strncmp(command, "status", 6) == 0) {
+    if (bt_streq(command, "status")) {
         if (target[0] == '\0') {
             bt_print("status requires a unit name\n");
             return 0;
@@ -273,7 +281,7 @@ int boot_handle_command(const char* args) {
         bt_print("\n");
         return 0;
     }
-    if (bt_strncmp(command, "start", 5) == 0) {
+    if (bt_streq(command, "start")) {
         if (target[0] == '\0') {
             bt_print("start requires a unit name\n");
             return 0;
@@ -286,7 +294,7 @@ int boot_handle_command(const char* args) {
         bt_start_unit(unit);
         return 0;
     }
-    if (bt_strncmp(command, "stop", 4) == 0) {
+    if (bt_streq(command, "stop")) {
         if (target[0] == '\0') {
             bt_print("stop requires a unit name\n");
             return 0;

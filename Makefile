@@ -60,7 +60,7 @@ $(BUILD_DIR)/systemd.o: src/systemd.cpp | $(BUILD_DIR)
 	$(CXX) $(COMMON_CXXFLAGS) -c src/systemd.cpp -o $(BUILD_DIR)/systemd.o
 
 $(BUILD_DIR)/asm_utils.o: src/asm_utils.S | $(BUILD_DIR)
-	$(CXX) $(COMMON_CXXFLAGS) -c src/asm_utils.S -o $(BUILD_DIR)/asm_utils.o
+	$(AS) $(COMMON_ASFLAGS) -c src/asm_utils.S -o $(BUILD_DIR)/asm_utils.o
 
 $(BUILD_DIR)/gui.o: src/gui.cpp | $(BUILD_DIR)
 	$(CXX) $(COMMON_CXXFLAGS) -c src/gui.cpp -o $(BUILD_DIR)/gui.o

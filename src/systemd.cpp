@@ -149,6 +149,14 @@ static int sd_strncmp(const char* a, const char* b, size_t n) {
     return 0;
 }
 
+static bool sd_streq(const char* a, const char* b) {
+    while (*a && *b) {
+        if (*a != *b) return false;
+        ++a; ++b;
+    }
+    return *a == *b;
+}
+
 static SystemdUnit* sd_find_unit(const char* name) {
     size_t name_len = sd_strlen(name);
     for (size_t i = 0; i < unit_count; ++i) {
@@ -236,18 +244,18 @@ int systemd_handle_command(const char* args) {
     char command[32];
     char target[MAX_UNIT_NAME];
     sd_parse_args(args, command, target);
-    if (command[0] == '\0' || sd_strncmp(command, "help", 4) == 0) {
+    if (command[0] == '\0' || sd_streq(command, "help")) {
         sd_print_help();
         return 0;
     }
-    if (sd_strncmp(command, "list-units", 10) == 0) {
+    if (sd_streq(command, "list-units")) {
         for (size_t i = 0; i < unit_count; ++i) {
             sd_print_unit(&units[i]);
             sd_print("\n");
         }
         return 0;
     }
-    if (sd_strncmp(command, "status", 6) == 0) {
+    if (sd_streq(command, "status")) {
         if (target[0] == '\0') {
             sd_print("status requires a unit name\n");
             return 0;
@@ -267,7 +275,7 @@ int systemd_handle_command(const char* args) {
         sd_print("\n");
         return 0;
     }
-    if (sd_strncmp(command, "start", 5) == 0) {
+    if (sd_streq(command, "start")) {
         if (target[0] == '\0') {
             sd_print("start requires a unit name\n");
             return 0;
@@ -280,7 +288,7 @@ int systemd_handle_command(const char* args) {
         sd_start_unit(unit);
         return 0;
     }
-    if (sd_strncmp(command, "stop", 4) == 0) {
+    if (sd_streq(command, "stop")) {
         if (target[0] == '\0') {
             sd_print("stop requires a unit name\n");
             return 0;

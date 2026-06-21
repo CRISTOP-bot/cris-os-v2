@@ -1,4 +1,7 @@
-#pragma once
+#ifndef BOOT_H
+#define BOOT_H
 
-bool boot_init();
-int boot_handle_command(const char* args);
+int boot_init(void);
+int boot_handle_command(const char *args);
+
+#endif /* BOOT_H */

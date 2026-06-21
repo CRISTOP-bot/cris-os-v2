@@ -1,11 +1,6 @@
-#pragma once
+#ifndef CALC_APP_H
+#define CALC_APP_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void calc_app(const char *expression);
 
-void calc_app(const char* expression);
-
-#ifdef __cplusplus
-}
-#endif
+#endif /* CALC_APP_H */

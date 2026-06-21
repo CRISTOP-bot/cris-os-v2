@@ -8,6 +8,7 @@
 #include "gui.h"
 #include "asm.h"
 #include "calc_app.h"
+#include <stdbool.h>
 
 static int kstrcmp(const char* a, const char* b) {
     while (*a && *b) {

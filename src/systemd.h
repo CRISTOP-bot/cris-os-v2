@@ -1,4 +1,7 @@
-#pragma once
+#ifndef SYSTEMD_H
+#define SYSTEMD_H
 
-bool systemd_init();
-int systemd_handle_command(const char* args);
+int systemd_init(void);
+int systemd_handle_command(const char *args);
+
+#endif /* SYSTEMD_H */

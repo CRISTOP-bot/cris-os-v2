@@ -1,4 +1,7 @@
-#pragma once
+#ifndef LCP_H
+#define LCP_H
 
-bool lcp_init();
-int lcp_handle_command(const char* args);
+int lcp_init(void);
+int lcp_handle_command(const char *args);
+
+#endif /* LCP_H */

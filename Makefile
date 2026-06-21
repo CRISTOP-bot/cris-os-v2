@@ -21,7 +21,7 @@ ASFLAGS = -m32 -ffreestanding
 LDFLAGS = -m elf_i386 -nostdlib
 
 SRC_DIR  = src
-DRV_DIR  = src/drivers
+DRV_DIR  = drivers
 
 SRCS  = $(SRC_DIR)/kernel.c \
         $(SRC_DIR)/kstring.c \

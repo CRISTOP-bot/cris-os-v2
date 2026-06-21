@@ -50,15 +50,6 @@ extern "C" void kmain(unsigned long mbi_addr) {
     keyboard_init();
     console_print("[ OK ] Keyboard initialized\n");
 
-    boot_init();
-    console_print("[ OK ] Boot manager initialized\n");
-
-    systemd_init();
-    console_print("[ OK ] Service manager initialized\n");
-
-    lcp_init();
-    console_print("[ OK ] LCP package manager initialized\n\n");
-
     bool rootfs_loaded = false;
 
     if (mbi_addr) {
@@ -99,6 +90,15 @@ extern "C" void kmain(unsigned long mbi_addr) {
     } else {
         console_print("[FAIL] Invalid multiboot info\n");
     }
+
+    boot_init();
+    console_print("[ OK ] Boot manager initialized\n");
+
+    systemd_init();
+    console_print("[ OK ] Service manager initialized\n");
+
+    lcp_init();
+    console_print("[ OK ] LCP package manager initialized\n\n");
 
     int s = add_asm(7, 5);
     char buf[32];

@@ -27,18 +27,35 @@ static long parse_term() {
     return v;
 }
 
+static long calc_expr();
+
 static long parse_factor() {
     skip_spaces();
-    if (*expr_ptr == '(') { ++expr_ptr; long v = parse_term(); skip_spaces(); if (*expr_ptr == ')') ++expr_ptr; return v; }
+    if (*expr_ptr == '(') {
+        ++expr_ptr;
+        long v = calc_expr();
+        skip_spaces();
+        if (*expr_ptr == ')') ++expr_ptr;
+        return v;
+    }
     return parse_number();
+}
+
+static long calc_expr() {
+    long v = parse_term();
+    skip_spaces();
+    while (*expr_ptr == '+' || *expr_ptr == '-') {
+        char op = *expr_ptr;
+        ++expr_ptr;
+        long rhs = parse_term();
+        if (op == '+') v = v + rhs;
+        else v = v - rhs;
+        skip_spaces();
+    }
+    return v;
 }
 
 long calc_eval(const char* s) {
     expr_ptr = s;
-    long v = parse_term();
-    skip_spaces();
-    while (*expr_ptr == '+' || *expr_ptr == '-') {
-        char op = *expr_ptr; ++expr_ptr; long rhs = parse_term(); if (op=='+') v = v + rhs; else v = v - rhs;
-    }
-    return v;
+    return calc_expr();
 }

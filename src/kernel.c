@@ -7,6 +7,11 @@
 #include "systemd.h"
 #include "boot.h"
 #include "idt.h"
+#include "gdt.h"
+#include "pic.h"
+#include "timer.h"
+#include "mouse.h"
+#include "kstring.h"
 #include <stdbool.h>
 
 struct multiboot_info {
@@ -26,24 +31,6 @@ struct multiboot_module {
 	unsigned long reserved;
 };
 
-static const char *kstrstr(const char *haystack, const char *needle)
-{
-	if (!*needle)
-		return haystack;
-	while (*haystack) {
-		const char *h = haystack;
-		const char *n = needle;
-		while (*h && *n && *h == *n) {
-			++h;
-			++n;
-		}
-		if (!*n)
-			return haystack;
-		++haystack;
-	}
-	return 0;
-}
-
 void kmain(unsigned long mbi_addr)
 {
 	console_clear();
@@ -54,10 +41,23 @@ void kmain(unsigned long mbi_addr)
 
 	console_print("[ OK ] Console initialized\n");
 
+	gdt_init();
+
+	idt_init();
+
+	pic_init();
+	console_print("[ OK ] PIC initialized (IRQs 0-15 remapped)\n");
+
+	pic_mask(0xFD, 0xFF); /* enable only IRQ1 (keyboard) -- polling mode */
+
+	timer_init(100);
+	console_print("[ OK ] PIT timer initialized (100 Hz)\n");
+
 	keyboard_init();
 	console_print("[ OK ] Keyboard initialized\n");
 
-	idt_init();
+	mouse_init();
+	pic_mask(0xFC, 0xEF); /* enable IRQ1 + IRQ12 */
 
 	bool rootfs_loaded = false;
 
@@ -108,31 +108,9 @@ void kmain(unsigned long mbi_addr)
 	lcp_init();
 	console_print("[ OK ] LCP package manager initialized\n\n");
 
-	int s = add_asm(7, 5);
+	int sum = add_asm(7, 5);
 	char buf[32];
-	int p = 0;
-	int value = s;
-
-	if (value == 0) {
-		buf[p++] = '0';
-	} else {
-		int neg = 0;
-		if (value < 0) {
-			neg = 1;
-			value = -value;
-		}
-		char rev[32];
-		int rp = 0;
-		while (value > 0) {
-			rev[rp++] = '0' + (value % 10);
-			value /= 10;
-		}
-		if (neg)
-			buf[p++] = '-';
-		for (int i = rp - 1; i >= 0; --i)
-			buf[p++] = rev[i];
-	}
-	buf[p] = 0;
+	kitoa(sum, buf, sizeof(buf));
 	console_print("[ASM] 7 + 5 = ");
 	console_print(buf);
 	console_print("\n\n");

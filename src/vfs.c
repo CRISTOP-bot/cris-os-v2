@@ -1,6 +1,7 @@
 #include "vfs.h"
 #include "console.h"
 #include "fs.h"
+#include "kstring.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -53,35 +54,6 @@ static void vfs_clear_node(int index)
 	nodes[index].child_count = 0;
 }
 
-static int vfs_strcmp(const char *a, const char *b)
-{
-	while (*a && *b) {
-		if (*a != *b)
-			return *a - *b;
-		++a;
-		++b;
-	}
-	return *a - *b;
-}
-
-static size_t vfs_strlen(const char *s)
-{
-	size_t len = 0;
-	while (s[len])
-		++len;
-	return len;
-}
-
-static void vfs_strcpy(char *dest, const char *src, size_t max_len)
-{
-	size_t i = 0;
-	while (i + 1 < max_len && src[i]) {
-		dest[i] = src[i];
-		++i;
-	}
-	dest[i] = '\0';
-}
-
 static char *vfs_alloc_data(const char *data, size_t size)
 {
 	if (data_used + size >= VFS_DATA_STORE_SIZE)
@@ -99,7 +71,7 @@ static int vfs_find_child(int dir, const char *name)
 		return -1;
 	for (int i = 0; i < nodes[dir].child_count; ++i) {
 		int child = nodes[dir].children[i];
-		if (vfs_strcmp(nodes[child].name, name) == 0)
+		if (kstrcmp(nodes[child].name, name) == 0)
 			return child;
 	}
 	return -1;
@@ -137,9 +109,9 @@ static int vfs_resolve(const char *path)
 		while (*path && *path != '/' && pos + 1 < VFS_NAME_SIZE)
 			component[pos++] = *path++;
 		component[pos] = '\0';
-		if (vfs_strcmp(component, ".") == 0)
+		if (kstrcmp(component, ".") == 0)
 			continue;
-		if (vfs_strcmp(component, "..") == 0) {
+		if (kstrcmp(component, "..") == 0) {
 			if (nodes[current].parent >= 0)
 				current = nodes[current].parent;
 			continue;
@@ -164,18 +136,18 @@ static int vfs_resolve_parent(const char *path, char *basename)
 		++p;
 	}
 	if (!slash) {
-		vfs_strcpy(basename, path, VFS_NAME_SIZE);
+		kstrcpy(basename, path, VFS_NAME_SIZE);
 		return cwd_node;
 	}
 	size_t parent_len = (size_t)(slash - path);
 	if (parent_len == 0) {
-		vfs_strcpy(basename, slash + 1, VFS_NAME_SIZE);
+		kstrcpy(basename, slash + 1, VFS_NAME_SIZE);
 		return root_node;
 	}
 	const char *name_start = slash + 1;
 	while (*name_start == '/')
 		++name_start;
-	vfs_strcpy(basename, name_start, VFS_NAME_SIZE);
+	kstrcpy(basename, name_start, VFS_NAME_SIZE);
 	char parent_path[128];
 	size_t len = 0;
 	const char *q = path;
@@ -212,7 +184,7 @@ static int vfs_create_node(const char *path, bool dir)
 	if (node < 0)
 		return -1;
 	vfs_clear_node(node);
-	vfs_strcpy(nodes[node].name, name, VFS_NAME_SIZE);
+	kstrcpy(nodes[node].name, name, VFS_NAME_SIZE);
 	nodes[node].is_dir = dir;
 	nodes[node].read_only = false;
 	nodes[node].parent = parent;
@@ -239,7 +211,7 @@ static void vfs_build_path(int node, char *out, size_t max_len)
 	}
 	char tmp[256];
 	vfs_build_path(nodes[node].parent, tmp, sizeof(tmp));
-	size_t len = vfs_strlen(tmp);
+	size_t len = kstrlen(tmp);
 	if (len > 0 && tmp[len - 1] != '/' && len + 1 < max_len) {
 		if (len + 1 >= sizeof(tmp))
 			return;
@@ -298,7 +270,7 @@ bool vfs_init(void)
 					node = vfs_new_node();
 					if (node >= 0) {
 						vfs_clear_node(node);
-						vfs_strcpy(nodes[node].name, buffer, VFS_NAME_SIZE);
+						kstrcpy(nodes[node].name, buffer, VFS_NAME_SIZE);
 						nodes[node].is_dir = true;
 						nodes[node].read_only = true;
 						nodes[node].parent = current;
@@ -310,7 +282,7 @@ bool vfs_init(void)
 					node = vfs_new_node();
 					if (node >= 0) {
 						vfs_clear_node(node);
-						vfs_strcpy(nodes[node].name, buffer, VFS_NAME_SIZE);
+						kstrcpy(nodes[node].name, buffer, VFS_NAME_SIZE);
 						nodes[node].is_dir = false;
 						nodes[node].read_only = true;
 						nodes[node].data = (const char *)file->data;
@@ -480,7 +452,7 @@ bool vfs_mv(const char *src, const char *dst)
 		}
 		nodes[old_parent].child_count = write;
 	}
-	vfs_strcpy(nodes[node].name, name, VFS_NAME_SIZE);
+	kstrcpy(nodes[node].name, name, VFS_NAME_SIZE);
 	vfs_add_child(parent, node);
 	return true;
 }

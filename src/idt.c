@@ -1,6 +1,9 @@
 #include "idt.h"
 #include "console.h"
 #include "asm.h"
+#include "pic.h"
+#include "timer.h"
+#include "mouse.h"
 #include <stdbool.h>
 
 struct idt_entry {
@@ -22,6 +25,7 @@ typedef struct idt_pointer idt_pointer_t;
 static idt_entry_t idt[256];
 static bool idt_installed;
 
+/* Exception ISRs */
 void isr0(void);  void isr1(void);  void isr2(void);  void isr3(void);
 void isr4(void);  void isr5(void);  void isr6(void);  void isr7(void);
 void isr8(void);  void isr9(void);  void isr10(void); void isr11(void);
@@ -30,6 +34,12 @@ void isr16(void); void isr17(void); void isr18(void); void isr19(void);
 void isr20(void); void isr21(void); void isr22(void); void isr23(void);
 void isr24(void); void isr25(void); void isr26(void); void isr27(void);
 void isr28(void); void isr29(void); void isr30(void); void isr31(void);
+
+/* IRQ ISRs */
+void irq0(void);  void irq1(void);  void irq2(void);  void irq3(void);
+void irq4(void);  void irq5(void);  void irq6(void);  void irq7(void);
+void irq8(void);  void irq9(void);  void irq10(void); void irq11(void);
+void irq12(void); void irq13(void); void irq14(void); void irq15(void);
 
 static void idt_set_entry(int num, void *handler,
 			  unsigned short sel, unsigned char flags)
@@ -42,11 +52,16 @@ static void idt_set_entry(int num, void *handler,
 	idt[num].base_high = (base >> 16) & 0xFFFF;
 }
 
-static void *handlers[] = {
+static void *ex_handlers[] = {
 	isr0, isr1, isr2, isr3, isr4, isr5, isr6, isr7,
 	isr8, isr9, isr10, isr11, isr12, isr13, isr14, isr15,
 	isr16, isr17, isr18, isr19, isr20, isr21, isr22, isr23,
 	isr24, isr25, isr26, isr27, isr28, isr29, isr30, isr31
+};
+
+static void *irq_handlers[] = {
+	irq0, irq1, irq2, irq3, irq4, irq5, irq6, irq7,
+	irq8, irq9, irq10, irq11, irq12, irq13, irq14, irq15
 };
 
 static const char *exception_names[] = {
@@ -106,6 +121,28 @@ void exception_handler(struct isr_regs *r)
 	halt_cpu();
 }
 
+void irq_handler(struct isr_regs *r)
+{
+	unsigned char irq = (unsigned char)(r->num - 32);
+
+	switch (irq) {
+	case 0:  /* PIT timer */
+		timer_handler();
+		break;
+	case 1:  /* keyboard */
+		/* keyboard is polled, just ack */
+		(void)inb(0x60);
+		break;
+	case 12: /* PS/2 mouse */
+		mouse_handler();
+		break;
+	default:
+		break;
+	}
+
+	pic_eoi(irq);
+}
+
 void idt_init(void)
 {
 	if (idt_installed)
@@ -115,7 +152,10 @@ void idt_init(void)
 	unsigned char flags = 0x8E;
 
 	for (int i = 0; i < 32; ++i)
-		idt_set_entry(i, handlers[i], code_sel, flags);
+		idt_set_entry(i, ex_handlers[i], code_sel, flags);
+
+	for (int i = 0; i < 16; ++i)
+		idt_set_entry(32 + i, irq_handlers[i], code_sel, flags);
 
 	idt_pointer_t idtp;
 	idtp.limit = (unsigned short)(sizeof(idt_entry_t) * 256 - 1);
@@ -124,5 +164,5 @@ void idt_init(void)
 	asm volatile("lidt (%0)" : : "p" (&idtp));
 
 	idt_installed = true;
-	console_print("[ OK ] IDT installed (32 exception handlers)\n");
+	console_print("[ OK ] IDT installed (32 exceptions + 16 IRQs)\n");
 }

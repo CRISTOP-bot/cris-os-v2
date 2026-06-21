@@ -1,4 +1,5 @@
 #include "fs.h"
+#include "kstring.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -51,17 +52,6 @@ bool fs_init(const void *image, size_t size)
 	return true;
 }
 
-static int fs_strcmp(const char *a, const char *b)
-{
-	while (*a && *b) {
-		if (*a != *b)
-			return *a - *b;
-		++a;
-		++b;
-	}
-	return *a - *b;
-}
-
 size_t fs_file_count(void)
 {
 	return fs_entry_count;
@@ -82,7 +72,7 @@ const struct fs_file *fs_file_at(size_t index)
 const struct fs_file *fs_find(const char *name)
 {
 	for (size_t i = 0; i < fs_entry_count; ++i) {
-		if (fs_strcmp(fs_entries[i].name, name) == 0)
+		if (kstrcmp(fs_entries[i].name, name) == 0)
 			return fs_file_at(i);
 	}
 	return 0;

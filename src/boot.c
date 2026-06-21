@@ -1,6 +1,7 @@
 #include "boot.h"
 #include "console.h"
 #include "fs.h"
+#include "kstring.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -146,41 +147,11 @@ static void bt_print_unit(const boot_unit_t *u)
 	}
 }
 
-static size_t bt_strlen(const char *s)
-{
-	size_t len = 0;
-	while (s[len])
-		++len;
-	return len;
-}
-
-static int bt_strncmp(const char *a, const char *b, size_t n)
-{
-	for (size_t i = 0; i < n; ++i) {
-		if (a[i] != b[i])
-			return (unsigned char)a[i] - (unsigned char)b[i];
-		if (!a[i])
-			return 0;
-	}
-	return 0;
-}
-
-static bool bt_streq(const char *a, const char *b)
-{
-	while (*a && *b) {
-		if (*a != *b)
-			return false;
-		++a;
-		++b;
-	}
-	return *a == *b;
-}
-
 static boot_unit_t *bt_find_unit(const char *name)
 {
-	size_t name_len = bt_strlen(name);
+	size_t name_len = kstrlen(name);
 	for (size_t i = 0; i < unit_count; ++i) {
-		if (bt_strncmp(units[i].name, name, name_len) == 0 &&
+		if (kstrncmp(units[i].name, name, name_len) == 0 &&
 		    units[i].name[name_len] == '\0')
 			return &units[i];
 	}
@@ -282,18 +253,18 @@ int boot_handle_command(const char *args)
 	char command[32];
 	char target[MAX_BOOT_NAME];
 	bt_parse_args(args, command, target);
-	if (command[0] == '\0' || bt_streq(command, "help")) {
+	if (command[0] == '\0' || kstreq(command, "help")) {
 		bt_print_help();
 		return 0;
 	}
-	if (bt_streq(command, "list-units")) {
+	if (kstreq(command, "list-units")) {
 		for (size_t i = 0; i < unit_count; ++i) {
 			bt_print_unit(&units[i]);
 			bt_print("\n");
 		}
 		return 0;
 	}
-	if (bt_streq(command, "status")) {
+	if (kstreq(command, "status")) {
 		if (target[0] == '\0') {
 			bt_print("status requires a unit name\n");
 			return 0;
@@ -307,7 +278,7 @@ int boot_handle_command(const char *args)
 		bt_print("\n");
 		return 0;
 	}
-	if (bt_streq(command, "start")) {
+	if (kstreq(command, "start")) {
 		if (target[0] == '\0') {
 			bt_print("start requires a unit name\n");
 			return 0;
@@ -320,7 +291,7 @@ int boot_handle_command(const char *args)
 		bt_start_unit(unit);
 		return 0;
 	}
-	if (bt_streq(command, "stop")) {
+	if (kstreq(command, "stop")) {
 		if (target[0] == '\0') {
 			bt_print("stop requires a unit name\n");
 			return 0;

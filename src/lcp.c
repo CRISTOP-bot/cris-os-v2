@@ -1,6 +1,7 @@
 #include "lcp.h"
 #include "console.h"
 #include "fs.h"
+#include "kstring.h"
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -35,28 +36,6 @@ static bool repo_loaded;
 static void lcp_print(const char *s)
 {
 	console_print(s);
-}
-
-static int lcp_strcmp(const char *a, const char *b)
-{
-	while (*a && *b) {
-		if (*a != *b)
-			return *a - *b;
-		++a;
-		++b;
-	}
-	return *a - *b;
-}
-
-static int lcp_strncmp(const char *a, const char *b, size_t n)
-{
-	for (size_t i = 0; i < n; ++i) {
-		if (a[i] != b[i])
-			return (unsigned char)a[i] - (unsigned char)b[i];
-		if (!a[i])
-			return 0;
-	}
-	return 0;
 }
 
 static const char *lcp_trim(const char *s)
@@ -127,33 +106,33 @@ static void lcp_parse_package_block(char *block)
 		}
 		lcp_rtrim(line);
 		const char *value = 0;
-		if (lcp_strncmp(line, "name:", 5) == 0) {
+		if (kstrncmp(line, "name:", 5) == 0) {
 			value = lcp_trim(line + 5);
 			pkg->name = value;
-		} else if (lcp_strncmp(line, "version:", 8) == 0) {
+		} else if (kstrncmp(line, "version:", 8) == 0) {
 			value = lcp_trim(line + 8);
 			pkg->version = value;
-		} else if (lcp_strncmp(line, "description:", 12) == 0) {
+		} else if (kstrncmp(line, "description:", 12) == 0) {
 			value = lcp_trim(line + 12);
 			pkg->description = value;
-		} else if (lcp_strncmp(line, "arch:", 5) == 0) {
+		} else if (kstrncmp(line, "arch:", 5) == 0) {
 			value = lcp_trim(line + 5);
 			pkg->arch = value;
-		} else if (lcp_strncmp(line, "maintainer:", 11) == 0) {
+		} else if (kstrncmp(line, "maintainer:", 11) == 0) {
 			value = lcp_trim(line + 11);
 			pkg->maintainer = value;
-		} else if (lcp_strncmp(line, "license:", 8) == 0) {
+		} else if (kstrncmp(line, "license:", 8) == 0) {
 			value = lcp_trim(line + 8);
 			pkg->license = value;
-		} else if (lcp_strncmp(line, "dependencies:", 13) == 0) {
+		} else if (kstrncmp(line, "dependencies:", 13) == 0) {
 			value = lcp_trim(line + 13);
 			lcp_split_list(value, pkg->dependencies,
 				       &pkg->dependency_count, MAX_DEPENDENCIES);
-		} else if (lcp_strncmp(line, "files:", 6) == 0) {
+		} else if (kstrncmp(line, "files:", 6) == 0) {
 			value = lcp_trim(line + 6);
 			lcp_split_list(value, pkg->files,
 				       &pkg->file_count, MAX_FILES);
-		} else if (lcp_strncmp(line, "size:", 5) == 0) {
+		} else if (kstrncmp(line, "size:", 5) == 0) {
 			value = lcp_trim(line + 5);
 			unsigned int size = 0;
 			while (*value >= '0' && *value <= '9') {
@@ -161,7 +140,7 @@ static void lcp_parse_package_block(char *block)
 				++value;
 			}
 			pkg->size = size;
-		} else if (lcp_strncmp(line, "repo:", 5) == 0) {
+		} else if (kstrncmp(line, "repo:", 5) == 0) {
 			value = lcp_trim(line + 5);
 			pkg->repo = value;
 		}
@@ -274,7 +253,7 @@ bool lcp_init(void)
 static lcp_package_t *lcp_find_package(const char *name)
 {
 	for (size_t i = 0; i < package_count; ++i) {
-		if (lcp_strcmp(packages[i].name, name) == 0)
+		if (kstrcmp(packages[i].name, name) == 0)
 			return &packages[i];
 	}
 	return 0;
@@ -428,7 +407,7 @@ static bool lcp_has_dependents(const char *name)
 		if (!packages[i].installed)
 			continue;
 		for (size_t j = 0; j < packages[i].dependency_count; ++j) {
-			if (lcp_strcmp(packages[i].dependencies[j], name) == 0)
+			if (kstrcmp(packages[i].dependencies[j], name) == 0)
 				return true;
 		}
 	}
@@ -556,11 +535,11 @@ int lcp_handle_command(const char *args)
 {
 	char token[64];
 	const char *rest = lcp_next_token(args, token, sizeof(token));
-	if (token[0] == '\0' || lcp_strcmp(token, "help") == 0) {
+	if (token[0] == '\0' || kstrcmp(token, "help") == 0) {
 		lcp_print_help();
 		return 0;
 	}
-	if (lcp_strcmp(token, "search") == 0) {
+	if (kstrcmp(token, "search") == 0) {
 		if (*rest == '\0') {
 			lcp_print("search requires a term.");
 			return 0;
@@ -568,7 +547,7 @@ int lcp_handle_command(const char *args)
 		lcp_search(rest);
 		return 0;
 	}
-	if (lcp_strcmp(token, "info") == 0) {
+	if (kstrcmp(token, "info") == 0) {
 		if (*rest == '\0') {
 			lcp_print("info requires a package name.");
 			return 0;
@@ -581,22 +560,22 @@ int lcp_handle_command(const char *args)
 		lcp_print_package_info(pkg);
 		return 0;
 	}
-	if (lcp_strcmp(token, "list") == 0) {
-		if (lcp_strcmp(rest, "--available") == 0) {
+	if (kstrcmp(token, "list") == 0) {
+		if (kstrcmp(rest, "--available") == 0) {
 			lcp_list_available();
 			return 0;
 		}
-		if (lcp_strcmp(rest, "--installed") == 0) {
+		if (kstrcmp(rest, "--installed") == 0) {
 			lcp_list_installed();
 			return 0;
 		}
 		lcp_list_installed();
 		return 0;
 	}
-	if (lcp_strcmp(token, "install") == 0) {
+	if (kstrcmp(token, "install") == 0) {
 		bool no_deps = false;
 		const char *name = rest;
-		if (lcp_strncmp(rest, "--no-deps", 9) == 0) {
+		if (kstrncmp(rest, "--no-deps", 9) == 0) {
 			no_deps = true;
 			name = lcp_trim(rest + 9);
 		}
@@ -616,10 +595,10 @@ int lcp_handle_command(const char *args)
 		lcp_install_package(pkg, no_deps);
 		return 0;
 	}
-	if (lcp_strcmp(token, "remove") == 0) {
+	if (kstrcmp(token, "remove") == 0) {
 		bool purge = false;
 		const char *name = rest;
-		if (lcp_strncmp(rest, "--purge", 7) == 0) {
+		if (kstrncmp(rest, "--purge", 7) == 0) {
 			purge = true;
 			name = lcp_trim(rest + 7);
 		}
@@ -635,14 +614,14 @@ int lcp_handle_command(const char *args)
 		lcp_remove_package(pkg, purge);
 		return 0;
 	}
-	if (lcp_strcmp(token, "update") == 0) {
+	if (kstrcmp(token, "update") == 0) {
 		if (lcp_init())
 			lcp_print("Repository metadata updated.");
 		else
 			lcp_print("Failed to update repository metadata.");
 		return 0;
 	}
-	if (lcp_strcmp(token, "upgrade") == 0) {
+	if (kstrcmp(token, "upgrade") == 0) {
 		if (*rest == '\0') {
 			for (size_t i = 0; i < package_count; ++i) {
 				if (packages[i].installed)
@@ -658,7 +637,7 @@ int lcp_handle_command(const char *args)
 		lcp_upgrade_package(pkg);
 		return 0;
 	}
-	if (lcp_strcmp(token, "files") == 0) {
+	if (kstrcmp(token, "files") == 0) {
 		if (*rest == '\0') {
 			lcp_print("files requires a package name.");
 			return 0;
@@ -671,7 +650,7 @@ int lcp_handle_command(const char *args)
 		lcp_show_files(pkg);
 		return 0;
 	}
-	if (lcp_strcmp(token, "depends") == 0) {
+	if (kstrcmp(token, "depends") == 0) {
 		if (*rest == '\0') {
 			lcp_print("depends requires a package name.");
 			return 0;
@@ -684,7 +663,7 @@ int lcp_handle_command(const char *args)
 		lcp_show_dependencies(pkg);
 		return 0;
 	}
-	if (lcp_strcmp(token, "verify") == 0) {
+	if (kstrcmp(token, "verify") == 0) {
 		if (*rest == '\0') {
 			lcp_print("verify requires a package name.");
 			return 0;

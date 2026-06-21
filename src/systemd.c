@@ -1,6 +1,7 @@
 #include "systemd.h"
 #include "console.h"
 #include "fs.h"
+#include "kstring.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -145,41 +146,11 @@ static void sd_parse_unit(const struct fs_file *file)
 	unit_count += 1;
 }
 
-static size_t sd_strlen(const char *s)
-{
-	size_t len = 0;
-	while (s[len])
-		++len;
-	return len;
-}
-
-static int sd_strncmp(const char *a, const char *b, size_t n)
-{
-	for (size_t i = 0; i < n; ++i) {
-		if (a[i] != b[i])
-			return (unsigned char)a[i] - (unsigned char)b[i];
-		if (!a[i])
-			return 0;
-	}
-	return 0;
-}
-
-static bool sd_streq(const char *a, const char *b)
-{
-	while (*a && *b) {
-		if (*a != *b)
-			return false;
-		++a;
-		++b;
-	}
-	return *a == *b;
-}
-
 static sd_unit_t *sd_find_unit(const char *name)
 {
-	size_t name_len = sd_strlen(name);
+	size_t name_len = kstrlen(name);
 	for (size_t i = 0; i < unit_count; ++i) {
-		if (sd_strncmp(units[i].name, name, name_len) == 0 &&
+		if (kstrncmp(units[i].name, name, name_len) == 0 &&
 		    units[i].name[name_len] == '\0')
 			return &units[i];
 	}
@@ -222,7 +193,7 @@ static void sd_stop_unit(sd_unit_t *unit)
 static void sd_start_default_target(void)
 {
 	for (size_t i = 0; i < unit_count; ++i) {
-		if (sd_strncmp(units[i].wanted_by, "default.target", 14) == 0)
+		if (kstrncmp(units[i].wanted_by, "default.target", 14) == 0)
 			sd_start_unit(&units[i]);
 	}
 }
@@ -269,18 +240,18 @@ int systemd_handle_command(const char *args)
 	char command[32];
 	char target[MAX_UNIT_NAME];
 	sd_parse_args(args, command, target);
-	if (command[0] == '\0' || sd_streq(command, "help")) {
+	if (command[0] == '\0' || kstreq(command, "help")) {
 		sd_print_help();
 		return 0;
 	}
-	if (sd_streq(command, "list-units")) {
+	if (kstreq(command, "list-units")) {
 		for (size_t i = 0; i < unit_count; ++i) {
 			sd_print_unit(&units[i]);
 			sd_print("\n");
 		}
 		return 0;
 	}
-	if (sd_streq(command, "status")) {
+	if (kstreq(command, "status")) {
 		if (target[0] == '\0') {
 			sd_print("status requires a unit name\n");
 			return 0;
@@ -300,7 +271,7 @@ int systemd_handle_command(const char *args)
 		sd_print("\n");
 		return 0;
 	}
-	if (sd_streq(command, "start")) {
+	if (kstreq(command, "start")) {
 		if (target[0] == '\0') {
 			sd_print("start requires a unit name\n");
 			return 0;
@@ -313,7 +284,7 @@ int systemd_handle_command(const char *args)
 		sd_start_unit(unit);
 		return 0;
 	}
-	if (sd_streq(command, "stop")) {
+	if (kstreq(command, "stop")) {
 		if (target[0] == '\0') {
 			sd_print("stop requires a unit name\n");
 			return 0;

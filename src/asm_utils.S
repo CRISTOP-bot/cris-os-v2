@@ -184,3 +184,67 @@ isr_common_stub:
     popa
     add $8, %esp
     iret
+
+.global gdt_load
+.type gdt_load, @function
+gdt_load:
+    movl 4(%esp), %eax
+    lgdt (%eax)
+    movw $0x10, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+    movw %ax, %ss
+    ljmp $0x08, $gdt_flush
+gdt_flush:
+    ret
+
+.macro irq_def num
+.global irq\num
+.type irq\num, @function
+irq\num:
+    push $0
+    push $\num
+    jmp irq_common_stub
+.endm
+
+irq_def 0
+irq_def 1
+irq_def 2
+irq_def 3
+irq_def 4
+irq_def 5
+irq_def 6
+irq_def 7
+irq_def 8
+irq_def 9
+irq_def 10
+irq_def 11
+irq_def 12
+irq_def 13
+irq_def 14
+irq_def 15
+
+irq_common_stub:
+    pusha
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    mov $0x10, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    mov %esp, %eax
+    push %eax
+    call irq_handler
+    add $4, %esp
+    pop %gs
+    pop %fs
+    pop %es
+    pop %ds
+    popa
+    add $8, %esp
+    iret

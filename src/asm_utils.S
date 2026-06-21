@@ -42,7 +42,17 @@ div_asm:
 .type halt_cpu, @function
 halt_cpu:
     cli
-    hlt
+1:  hlt
+    jmp 1b
+
+.global reboot_cpu
+.type reboot_cpu, @function
+reboot_cpu:
+    cli
+    movw $0x64, %dx
+    movb $0xFE, %al
+    outb %al, %dx
+1:  jmp 1b
     ret
 
 .global inb
@@ -101,3 +111,76 @@ memsetw_asm:
     rep stosw
     pop %ebp
     ret
+
+.macro isr_no_err num
+.global isr\num
+.type isr\num, @function
+isr\num:
+    push $0
+    push $\num
+    jmp isr_common_stub
+.endm
+
+.macro isr_err num
+.global isr\num
+.type isr\num, @function
+isr\num:
+    push $\num
+    jmp isr_common_stub
+.endm
+
+isr_no_err 0
+isr_no_err 1
+isr_no_err 2
+isr_no_err 3
+isr_no_err 4
+isr_no_err 5
+isr_no_err 6
+isr_no_err 7
+isr_err    8
+isr_no_err 9
+isr_err    10
+isr_err    11
+isr_err    12
+isr_err    13
+isr_err    14
+isr_no_err 15
+isr_no_err 16
+isr_err    17
+isr_no_err 18
+isr_no_err 19
+isr_no_err 20
+isr_err    21
+isr_no_err 22
+isr_no_err 23
+isr_no_err 24
+isr_no_err 25
+isr_no_err 26
+isr_no_err 27
+isr_no_err 28
+isr_no_err 29
+isr_err    30
+isr_no_err 31
+
+isr_common_stub:
+    pusha
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    mov $0x10, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    mov %esp, %eax
+    push %eax
+    call exception_handler
+    add $4, %esp
+    pop %gs
+    pop %fs
+    pop %es
+    pop %ds
+    popa
+    add $8, %esp
+    iret

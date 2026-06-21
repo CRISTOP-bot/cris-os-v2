@@ -108,6 +108,7 @@ static int vfs_resolve(const char* path) {
         current = root_node;
         ++path;
     }
+    if (current < 0) return -1;
     char component[VFS_NAME_SIZE];
     while (*path) {
         while (*path == '/') ++path;
@@ -143,7 +144,7 @@ static int vfs_resolve_parent(const char* path, char* basename) {
         vfs_strcpy(basename, path, VFS_NAME_SIZE);
         return cwd_node;
     }
-    size_t parent_len = slash - path;
+    size_t parent_len = (size_t)(slash - path);
     if (parent_len == 0) {
         vfs_strcpy(basename, slash + 1, VFS_NAME_SIZE);
         return root_node;
@@ -157,7 +158,9 @@ static int vfs_resolve_parent(const char* path, char* basename) {
     while (q < slash && len + 1 < sizeof(parent_path)) {
         parent_path[len++] = *q++;
     }
+    if (len > 1 && parent_path[len - 1] == '/') --len;
     parent_path[len] = '\0';
+    if (len == 0) return root_node;
     return vfs_resolve(parent_path);
 }
 

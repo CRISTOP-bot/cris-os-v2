@@ -354,7 +354,7 @@ void shell_run() {
         }
         if (kstrcmp(cmd, "reboot") == 0) {
             console_print("Rebooting...\n");
-            halt_cpu();
+            reboot_cpu();
         }
         if (kstrcmp(cmd, "panic") == 0) {
             if (rest[0] == '\0') {

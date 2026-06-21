@@ -3,34 +3,42 @@
 #include "asm.h"
 #include "keyboard.h"
 
-volatile unsigned short* VGA = (unsigned short*)0xB8000;
+static volatile unsigned short* const VGA = (unsigned short*)0xB8000;
 static int cursor_x = 0, cursor_y = 0;
 
+#define VGA_COLS 80
+#define VGA_ROWS 25
+
 static inline void scroll_if_needed() {
-    if (cursor_y >= 25) {
-        for (int y = 1; y < 25; ++y)
-            for (int x = 0; x < 80; ++x)
-                VGA[(y-1)*80 + x] = VGA[y*80 + x];
-        cursor_y = 24; cursor_x = 0;
-        for (int x = 0; x < 80; ++x) VGA[cursor_y*80 + x] = (unsigned short) ' ' | (0x07 << 8);
+    if (cursor_y >= VGA_ROWS) {
+        for (int y = 1; y < VGA_ROWS; ++y)
+            for (int x = 0; x < VGA_COLS; ++x)
+                VGA[(y-1)*VGA_COLS + x] = VGA[y*VGA_COLS + x];
+        cursor_y = VGA_ROWS - 1;
+        cursor_x = 0;
+        unsigned short blank = (unsigned short)' ' | (0x07 << 8);
+        for (int x = 0; x < VGA_COLS; ++x)
+            VGA[cursor_y * VGA_COLS + x] = blank;
     }
 }
 
 void console_putchar(char c) {
-    const unsigned short attr = (unsigned short)0x07;
+    unsigned short attr = 0x07;
     if (c == '\n') {
-        cursor_x = 0; cursor_y++;
+        cursor_x = 0;
+        cursor_y++;
     } else if (c == '\r') {
         cursor_x = 0;
     } else if (c == '\b') {
         if (cursor_x > 0) cursor_x--;
-        VGA[cursor_y * 80 + cursor_x] = (unsigned short)(' ') | (attr << 8);
-    } else {
-        VGA[cursor_y * 80 + cursor_x] = (unsigned short)c | (attr << 8);
+        VGA[cursor_y * VGA_COLS + cursor_x] = (unsigned short)' ' | (attr << 8);
+    } else if ((unsigned char)c >= ' ') {
+        if (cursor_x >= VGA_COLS) { cursor_x = 0; cursor_y++; }
+        if (cursor_y >= VGA_ROWS) scroll_if_needed();
+        VGA[cursor_y * VGA_COLS + cursor_x] = (unsigned short)(unsigned char)c | (attr << 8);
         cursor_x++;
-        if (cursor_x >= 80) { cursor_x = 0; cursor_y++; }
     }
-    scroll_if_needed();
+    if (cursor_y >= VGA_ROWS) scroll_if_needed();
 }
 
 void console_print(const char* s) {

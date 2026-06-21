@@ -77,10 +77,13 @@ $(BUILD_DIR)/calc.o: src/calc.c | $(BUILD_DIR)
 $(BUILD_DIR)/calc_app.o: src/calc_app.cpp | $(BUILD_DIR)
 	$(CXX) $(COMMON_CXXFLAGS) -c src/calc_app.cpp -o $(BUILD_DIR)/calc_app.o
 
+$(BUILD_DIR)/idt.o: src/idt.cpp | $(BUILD_DIR)
+	$(CXX) $(COMMON_CXXFLAGS) -c src/idt.cpp -o $(BUILD_DIR)/idt.o
+
 $(BUILD_DIR)/math_asm.o: src/math_asm.S | $(BUILD_DIR)
 	$(AS) $(COMMON_ASFLAGS) -c src/math_asm.S -o $(BUILD_DIR)/math_asm.o
 
-$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/systemd.o $(BUILD_DIR)/lcp.o $(BUILD_DIR)/gui.o $(BUILD_DIR)/asm_utils.o $(BUILD_DIR)/bootmgr.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/fs.o $(BUILD_DIR)/vfs.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/calc_app.o $(BUILD_DIR)/math_asm.o linker.ld | $(BUILD_DIR)
+$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/systemd.o $(BUILD_DIR)/lcp.o $(BUILD_DIR)/gui.o $(BUILD_DIR)/asm_utils.o $(BUILD_DIR)/bootmgr.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/fs.o $(BUILD_DIR)/vfs.o $(BUILD_DIR)/calc.o $(BUILD_DIR)/calc_app.o $(BUILD_DIR)/math_asm.o $(BUILD_DIR)/idt.o linker.ld | $(BUILD_DIR)
 	$(LD) $(LDFLAGS) -T linker.ld -o $(KERNEL) \
 		$(BUILD_DIR)/boot.o \
 		$(BUILD_DIR)/kernel.o \
@@ -97,7 +100,8 @@ $(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BU
 		$(BUILD_DIR)/vfs.o \
 		$(BUILD_DIR)/calc.o \
 		$(BUILD_DIR)/calc_app.o \
-		$(BUILD_DIR)/math_asm.o
+		$(BUILD_DIR)/math_asm.o \
+		$(BUILD_DIR)/idt.o
 
 $(ROOTFS): tools/build_rootfs.py rootfs/README.txt rootfs/info.txt | $(ISO_DIR)/boot/grub
 	$(PYTHON) tools/build_rootfs.py rootfs $(ROOTFS)

@@ -6,6 +6,7 @@
 #include "lcp.h"
 #include "systemd.h"
 #include "boot.h"
+#include "idt.h"
 
 extern "C" int add_asm(int a, int b);
 
@@ -49,6 +50,8 @@ extern "C" void kmain(unsigned long mbi_addr) {
 
     keyboard_init();
     console_print("[ OK ] Keyboard initialized\n");
+
+    idt_init();
 
     bool rootfs_loaded = false;
 

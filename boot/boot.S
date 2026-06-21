@@ -1,6 +1,4 @@
-/* Put multiboot header inside .text so it appears early in the file
-    (GRUB scans the first 8 KiB of the kernel for the header). */
-.text
+.section .multiboot
 .align 4
 .long 0x1BADB002
 .long 0x00000003
@@ -16,11 +14,13 @@ start:
     mov %ax, %fs
     mov %ax, %gs
     mov $stack_top, %esp
+    and $-16, %esp
     push %ebx
     call kmain
     add $4, %esp
 1:  jmp 1b
 
 .section .bss
+.align 16
 .lcomm stack, 8192
 .set stack_top, stack + 8192

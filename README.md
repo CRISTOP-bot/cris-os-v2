@@ -261,6 +261,14 @@ qemu-system-i386 -cdrom os.iso -m 512M -serial tcp::4444,server -monitor stdio
 
 ---
 
+## 📞 Soporte
+
+Para soporte técnico, dudas o reportar problemas, contacta al desarrollador principal:
+
+- **Teléfono:** [+52 833 436 6888](tel:+528334366888)
+
+---
+
 ## 📄 Licencia
 
 Este proyecto se distribuye bajo la licencia **GNU General Public License v3**. Consulte el archivo [LICENSE](LICENSE) para más detalles.

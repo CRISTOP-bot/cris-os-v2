@@ -38,6 +38,12 @@ div_asm:
     pop %ebp
     ret
 
+.global sti
+.type sti, @function
+sti:
+    sti
+    ret
+
 .global halt_cpu
 .type halt_cpu, @function
 halt_cpu:

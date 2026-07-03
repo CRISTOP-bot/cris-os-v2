@@ -5,6 +5,7 @@ int add_asm(int a, int b);
 int sub_asm(int a, int b);
 int mul_asm(int a, int b);
 int div_asm(int a, int b);
+void sti(void);
 void halt_cpu(void);
 void reboot_cpu(void);
 unsigned char inb(unsigned short port);

@@ -106,7 +106,7 @@ void kmain(unsigned long mbi_addr)
 	boot_delay();
 
 	mouse_init();
-	pic_mask(0xFC, 0xEF);
+	pic_mask(0xFA, 0xEF);
 	boot_status("Initialized Mouse");
 
 	bool rootfs_loaded = false;
@@ -172,5 +172,6 @@ void kmain(unsigned long mbi_addr)
 	boot_delay();
 	console_print("\n");
 
+	sti();
 	shell_run();
 }

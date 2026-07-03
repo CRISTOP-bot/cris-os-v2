@@ -11,15 +11,18 @@ static void print_long(long value)
 		buf[pos++] = '0';
 	} else {
 		bool neg = false;
+		unsigned long uv;
 		if (value < 0) {
 			neg = true;
-			value = -value;
+			uv = -(unsigned long)value;
+		} else {
+			uv = (unsigned long)value;
 		}
 		char rev[32];
 		int rp = 0;
-		while (value > 0) {
-			rev[rp++] = '0' + (value % 10);
-			value /= 10;
+		while (uv > 0) {
+			rev[rp++] = '0' + (uv % 10);
+			uv /= 10;
 		}
 		if (neg)
 			buf[pos++] = '-';

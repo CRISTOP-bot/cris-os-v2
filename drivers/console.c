@@ -9,7 +9,7 @@ static int cursor_x = 0, cursor_y = 0;
 #define VGA_COLS 80
 #define VGA_ROWS 25
 
-static inline void scroll_if_needed() {
+static inline void scroll_if_needed(void) {
     if (cursor_y >= VGA_ROWS) {
         for (int y = 1; y < VGA_ROWS; ++y)
             for (int x = 0; x < VGA_COLS; ++x)
@@ -64,6 +64,6 @@ void console_clear_color(unsigned char attr) {
     cursor_y = 0;
 }
 
-void console_clear() {
+void console_clear(void) {
     console_clear_color(0x07);
 }

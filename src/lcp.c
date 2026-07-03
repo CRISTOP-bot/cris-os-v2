@@ -417,7 +417,7 @@ static bool lcp_has_dependents(const char *name)
 static void lcp_install_package(lcp_package_t *pkg, bool no_deps)
 {
 	if (pkg->installed) {
-		console_print("Package already installed.");
+		console_print("Package already installed.\n");
 		return;
 	}
 	if (!no_deps) {
@@ -465,7 +465,7 @@ static void lcp_upgrade_package(lcp_package_t *pkg)
 static void lcp_show_files(const lcp_package_t *pkg)
 {
 	if (!pkg) {
-		console_print("Package not found.");
+		console_print("Package not found.\n");
 		return;
 	}
 	for (size_t i = 0; i < pkg->file_count; ++i) {
@@ -477,11 +477,11 @@ static void lcp_show_files(const lcp_package_t *pkg)
 static void lcp_show_dependencies(const lcp_package_t *pkg)
 {
 	if (!pkg) {
-		console_print("Package not found.");
+		console_print("Package not found.\n");
 		return;
 	}
 	if (pkg->dependency_count == 0) {
-		console_print("No dependencies.");
+		console_print("No dependencies.\n");
 		return;
 	}
 	for (size_t i = 0; i < pkg->dependency_count; ++i) {
@@ -493,14 +493,14 @@ static void lcp_show_dependencies(const lcp_package_t *pkg)
 static void lcp_verify_package(const lcp_package_t *pkg)
 {
 	if (!pkg) {
-		console_print("Package not found.");
+		console_print("Package not found.\n");
 		return;
 	}
 	if (!pkg->installed) {
-		console_print("Package is not installed.");
+		console_print("Package is not installed.\n");
 		return;
 	}
-	console_print("Package is installed and appears healthy.");
+	console_print("Package is installed and appears healthy.\n");
 }
 
 static void lcp_search(const char *term)
@@ -515,7 +515,7 @@ static void lcp_search(const char *term)
 		}
 	}
 	if (!found)
-		console_print("No matching packages.");
+		console_print("No matching packages.\n");
 }
 
 static const char *lcp_next_token(const char *s, char *token, size_t max_len)
@@ -541,7 +541,7 @@ int lcp_handle_command(const char *args)
 	}
 	if (kstrcmp(token, "search") == 0) {
 		if (*rest == '\0') {
-			lcp_print("search requires a term.");
+			lcp_print("search requires a term.\n");
 			return 0;
 		}
 		lcp_search(rest);
@@ -549,12 +549,12 @@ int lcp_handle_command(const char *args)
 	}
 	if (kstrcmp(token, "info") == 0) {
 		if (*rest == '\0') {
-			lcp_print("info requires a package name.");
+			lcp_print("info requires a package name.\n");
 			return 0;
 		}
 		lcp_package_t *pkg = lcp_find_package(rest);
 		if (!pkg) {
-			lcp_print("Package not found.");
+			lcp_print("Package not found.\n");
 			return 0;
 		}
 		lcp_print_package_info(pkg);
@@ -580,16 +580,16 @@ int lcp_handle_command(const char *args)
 			name = lcp_trim(rest + 9);
 		}
 		if (*name == '\0') {
-			lcp_print("install requires a package name.");
+			lcp_print("install requires a package name.\n");
 			return 0;
 		}
 		lcp_package_t *pkg = lcp_find_package(name);
 		if (!pkg) {
-			lcp_print("Package not found.");
+			lcp_print("Package not found.\n");
 			return 0;
 		}
 		if (pkg->installed) {
-			lcp_print("Package already installed.");
+			lcp_print("Package already installed.\n");
 			return 0;
 		}
 		lcp_install_package(pkg, no_deps);
@@ -603,12 +603,12 @@ int lcp_handle_command(const char *args)
 			name = lcp_trim(rest + 7);
 		}
 		if (*name == '\0') {
-			lcp_print("remove requires a package name.");
+			lcp_print("remove requires a package name.\n");
 			return 0;
 		}
 		lcp_package_t *pkg = lcp_find_package(name);
 		if (!pkg) {
-			lcp_print("Package not found.");
+			lcp_print("Package not found.\n");
 			return 0;
 		}
 		lcp_remove_package(pkg, purge);
@@ -616,9 +616,9 @@ int lcp_handle_command(const char *args)
 	}
 	if (kstrcmp(token, "update") == 0) {
 		if (lcp_init())
-			lcp_print("Repository metadata updated.");
+			lcp_print("Repository metadata updated.\n");
 		else
-			lcp_print("Failed to update repository metadata.");
+			lcp_print("Failed to update repository metadata.\n");
 		return 0;
 	}
 	if (kstrcmp(token, "upgrade") == 0) {
@@ -631,7 +631,7 @@ int lcp_handle_command(const char *args)
 		}
 		lcp_package_t *pkg = lcp_find_package(rest);
 		if (!pkg) {
-			lcp_print("Package not found.");
+			lcp_print("Package not found.\n");
 			return 0;
 		}
 		lcp_upgrade_package(pkg);
@@ -639,12 +639,12 @@ int lcp_handle_command(const char *args)
 	}
 	if (kstrcmp(token, "files") == 0) {
 		if (*rest == '\0') {
-			lcp_print("files requires a package name.");
+			lcp_print("files requires a package name.\n");
 			return 0;
 		}
 		lcp_package_t *pkg = lcp_find_package(rest);
 		if (!pkg) {
-			lcp_print("Package not found.");
+			lcp_print("Package not found.\n");
 			return 0;
 		}
 		lcp_show_files(pkg);
@@ -652,12 +652,12 @@ int lcp_handle_command(const char *args)
 	}
 	if (kstrcmp(token, "depends") == 0) {
 		if (*rest == '\0') {
-			lcp_print("depends requires a package name.");
+			lcp_print("depends requires a package name.\n");
 			return 0;
 		}
 		lcp_package_t *pkg = lcp_find_package(rest);
 		if (!pkg) {
-			lcp_print("Package not found.");
+			lcp_print("Package not found.\n");
 			return 0;
 		}
 		lcp_show_dependencies(pkg);
@@ -665,17 +665,17 @@ int lcp_handle_command(const char *args)
 	}
 	if (kstrcmp(token, "verify") == 0) {
 		if (*rest == '\0') {
-			lcp_print("verify requires a package name.");
+			lcp_print("verify requires a package name.\n");
 			return 0;
 		}
 		lcp_package_t *pkg = lcp_find_package(rest);
 		if (!pkg) {
-			lcp_print("Package not found.");
+			lcp_print("Package not found.\n");
 			return 0;
 		}
 		lcp_verify_package(pkg);
 		return 0;
 	}
-	lcp_print("Unknown lcp command. Type 'lcp help' for commands.");
+	lcp_print("Unknown lcp command. Type 'lcp help' for commands.\n");
 	return 0;
 }

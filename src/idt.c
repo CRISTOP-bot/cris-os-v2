@@ -25,6 +25,15 @@ typedef struct idt_pointer idt_pointer_t;
 static idt_entry_t idt[256];
 static bool idt_installed;
 
+static void serial_out_debug(char c) {
+	while (!(inb(0x3F8 + 5) & 0x20));
+	outb(0x3F8, c);
+}
+
+static void serial_print_debug(const char *s) {
+	while (*s) serial_out_debug(*s++);
+}
+
 /* Exception ISRs */
 void isr0(void);  void isr1(void);  void isr2(void);  void isr3(void);
 void isr4(void);  void isr5(void);  void isr6(void);  void isr7(void);
@@ -145,24 +154,40 @@ void irq_handler(struct isr_regs *r)
 
 void idt_init(void)
 {
-	if (idt_installed)
+	serial_print_debug("idt_init entry\n");
+	if (idt_installed) {
+		serial_print_debug("already installed\n");
 		return;
+	}
+	serial_print_debug("installing...\n");
 
 	unsigned short code_sel = 0x08;
 	unsigned char flags = 0x8E;
+	serial_print_debug("setting exceptions\n");
 
-	for (int i = 0; i < 32; ++i)
+	for (int i = 0; i < 32; ++i) {
+		serial_out_debug('0' + (i % 10));
 		idt_set_entry(i, ex_handlers[i], code_sel, flags);
+	}
+	serial_print_debug(" exceptions done\n");
 
-	for (int i = 0; i < 16; ++i)
+	serial_print_debug(" setting irqs\n");
+	for (int i = 0; i < 16; ++i) {
+		serial_out_debug('A' + (i % 26));
 		idt_set_entry(32 + i, irq_handlers[i], code_sel, flags);
+	}
+	serial_print_debug(" irqs done\n");
 
 	idt_pointer_t idtp;
 	idtp.limit = (unsigned short)(sizeof(idt_entry_t) * 256 - 1);
 	idtp.base  = (unsigned int)&idt;
+	serial_print_debug("loading idt\n");
 
-	asm volatile("lidt (%0)" : : "p" (&idtp));
+	__asm__ volatile("lidt %0" : : "m"(idtp));
+	serial_print_debug("lidt done\n");
 
 	idt_installed = true;
+	serial_print_debug("idt installed, printing\n");
 	console_print("[ OK ] IDT installed (32 exceptions + 16 IRQs)\n");
+	serial_print_debug("idt_init done\n");
 }

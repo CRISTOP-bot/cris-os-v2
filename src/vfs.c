@@ -50,7 +50,7 @@ static void vfs_clear_node(int index)
 	nodes[index].size = 0;
 	nodes[index].own_data = 0;
 	nodes[index].own_size = 0;
-	nodes[index].parent = 0;
+	nodes[index].parent = -1;
 	nodes[index].child_count = 0;
 }
 

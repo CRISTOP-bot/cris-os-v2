@@ -128,12 +128,13 @@ static void shell_echo(const char *args)
 	char value[192];
 	const char *p = args;
 	int vi = 0;
-	while (*p && !(*p == '>' && p[1] != '>') && vi + 1 < (int)sizeof(value))
+	while (*p && *p != '>' && vi + 1 < (int)sizeof(value))
 		value[vi++] = *p++;
 	value[vi] = '\0';
-	p = kskip_spaces(p);
 	if (*p == '>') {
 		++p;
+		if (*p == '>')
+			++p;
 		p = kskip_spaces(p);
 		int ti = 0;
 		while (*p && *p != ' ' && ti + 1 < (int)sizeof(target))
@@ -183,10 +184,6 @@ void shell_run(void)
 		int n = keyboard_readline(buf, sizeof(buf));
 		if (n == 0)
 			continue;
-		for (int i = 0; buf[i]; ++i)
-			if (buf[i] == '=')
-				buf[i] = '+';
-
 		char cmd[32];
 		char arg1[128];
 		char arg2[128];
@@ -344,6 +341,9 @@ void shell_run(void)
 			continue;
 		}
 		if (kstreq(cmd, "calc")) {
+			for (int i = 0; rest[i]; ++i)
+				if (rest[i] == '=')
+					rest[i] = '+';
 			calc_app(rest);
 			continue;
 		}

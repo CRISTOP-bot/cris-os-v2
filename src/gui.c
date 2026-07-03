@@ -2,7 +2,6 @@
 #include "console.h"
 #include "keyboard.h"
 #include "vfs.h"
-#include "systemd.h"
 
 static void gui_draw_box(int x, int y, int w, int h, unsigned char attr) {
     for (int row = y; row < y + h; ++row) {
@@ -38,14 +37,14 @@ static void gui_draw_title(const char* title) {
     gui_draw_text(8, 4, title, 0x1E);
 }
 
-static void gui_draw_menu() {
+static void gui_draw_menu(void) {
     gui_draw_text(10, 7, "[S] Shell   [F] Filesystem   [M] Status   [Q] Salir", 0x1F);
     gui_draw_text(10, 9, "[C] Crear directorio  [T] Touch  [D] Delete", 0x1F);
     gui_draw_text(10, 11, "[R] Lectura de archivo  [G] Buscar  [U] Unmount", 0x1F);
     gui_draw_text(10, 13, "Presiona la tecla correspondiente para seleccionar.", 0x1F);
 }
 
-static void gui_draw_status() {
+static void gui_draw_status(void) {
     console_clear_color(0x1F);
     gui_draw_box(5, 3, 70, 18, 0x1F);
     gui_draw_frame(5, 3, 70, 18, 0x17);
@@ -58,7 +57,7 @@ static void gui_draw_status() {
     keyboard_read_char();
 }
 
-static void gui_show_filesystem() {
+static void gui_show_filesystem(void) {
     console_clear_color(0x1F);
     gui_draw_box(5, 3, 70, 18, 0x1F);
     gui_draw_frame(5, 3, 70, 18, 0x17);
@@ -71,7 +70,7 @@ static void gui_show_filesystem() {
     keyboard_read_char();
 }
 
-void gui_show() {
+void gui_show(void) {
     console_clear_color(0x1F);
     gui_draw_box(5, 3, 70, 18, 0x1F);
     gui_draw_frame(5, 3, 70, 18, 0x17);

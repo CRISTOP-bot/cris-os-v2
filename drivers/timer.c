@@ -1,6 +1,5 @@
 #include "timer.h"
 #include "asm.h"
-#include "console.h"
 
 #define TIMER_CMD  0x43
 #define TIMER_DATA 0x40
@@ -9,6 +8,8 @@ static volatile unsigned long timer_ticks;
 
 static void timer_set_freq(unsigned int frequency)
 {
+	if (frequency == 0)
+		frequency = 100;
 	unsigned int divisor = 1193180 / frequency;
 	outb(TIMER_CMD, 0x36);
 	outb(TIMER_DATA, (unsigned char)(divisor & 0xFF));
@@ -35,5 +36,5 @@ void timer_sleep(unsigned long ticks)
 {
 	unsigned long target = timer_ticks + ticks;
 	while (timer_ticks < target)
-		asm volatile("hlt");
+		__asm__ volatile("hlt");
 }

@@ -2,9 +2,9 @@
 
 static const char* expr_ptr;
 
-static void skip_spaces() { while (*expr_ptr == ' ') ++expr_ptr; }
+static void skip_spaces(void) { while (*expr_ptr == ' ') ++expr_ptr; }
 
-static long parse_number() {
+static long parse_number(void) {
     skip_spaces();
     int sign = 1;
     if (*expr_ptr == '+') { ++expr_ptr; }
@@ -14,9 +14,9 @@ static long parse_number() {
     return sign * val;
 }
 
-static long parse_factor();
+static long parse_factor(void);
 
-static long parse_term() {
+static long parse_term(void) {
     long v = parse_factor();
     while (1) {
         skip_spaces();
@@ -27,9 +27,9 @@ static long parse_term() {
     return v;
 }
 
-static long calc_expr();
+static long calc_expr(void);
 
-static long parse_factor() {
+static long parse_factor(void) {
     skip_spaces();
     if (*expr_ptr == '(') {
         ++expr_ptr;
@@ -41,7 +41,7 @@ static long parse_factor() {
     return parse_number();
 }
 
-static long calc_expr() {
+static long calc_expr(void) {
     long v = parse_term();
     skip_spaces();
     while (*expr_ptr == '+' || *expr_ptr == '-') {

@@ -123,15 +123,18 @@ void kitoa(long value, char *buf, size_t maxlen)
 			buf[pos++] = '0';
 	} else {
 		int neg = 0;
+		unsigned long uv;
 		if (value < 0) {
 			neg = 1;
-			value = -value;
+			uv = -(unsigned long)value;
+		} else {
+			uv = (unsigned long)value;
 		}
 		char rev[32];
 		size_t rp = 0;
-		while (value > 0 && rp < sizeof(rev)) {
-			rev[rp++] = (char)('0' + (value % 10));
-			value /= 10;
+		while (uv > 0 && rp < sizeof(rev)) {
+			rev[rp++] = (char)('0' + (uv % 10));
+			uv /= 10;
 		}
 		if (neg && pos + 1 < maxlen)
 			buf[pos++] = '-';

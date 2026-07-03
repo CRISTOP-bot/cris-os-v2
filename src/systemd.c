@@ -162,7 +162,7 @@ static void sd_start_unit(sd_unit_t *unit)
 	if (!unit)
 		return;
 	if (unit->active) {
-		sd_print("Unit already active.");
+		sd_print("Unit already active.\n");
 		return;
 	}
 	unit->active = true;
@@ -181,7 +181,7 @@ static void sd_stop_unit(sd_unit_t *unit)
 	if (!unit)
 		return;
 	if (!unit->active) {
-		sd_print("Unit not active.");
+		sd_print("Unit not active.\n");
 		return;
 	}
 	unit->active = false;

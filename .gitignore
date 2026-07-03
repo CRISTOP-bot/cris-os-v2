@@ -2,7 +2,12 @@ build/
 os.iso
 iso/boot/kernel.bin
 iso/boot/rootfs.bin
+iso/boot/grub/core.img
+iso/boot/grub/eltorito.img
 
 # Python cache
 __pycache__/
 *.py[cod]
+
+# Backup directories
+.header_fix_backup_*/

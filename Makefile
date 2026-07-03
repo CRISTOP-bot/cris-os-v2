@@ -16,7 +16,7 @@ KERNEL = $(BUILD_DIR)/kernel.bin
 ROOTFS = $(ISO_DIR)/boot/rootfs.bin
 QEMU   = qemu-system-i386
 
-CFLAGS  = -ffreestanding -O2 -Wall -Wextra -m32 -nostdlib -std=c99 -I src
+CFLAGS  = -ffreestanding -O2 -Wall -Wextra -m32 -nostdlib -std=c99 -I src -fno-stack-protector
 ASFLAGS = -m32 -ffreestanding
 LDFLAGS = -m elf_i386 -nostdlib
 
@@ -50,7 +50,7 @@ ASMS  = $(SRC_DIR)/asm_utils.S \
 
 OBJS  = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 OBJS += $(patsubst $(DRV_DIR)/%.c,$(BUILD_DIR)/drv_%.o,$(DRV_SRCS))
-OBJS += $(BUILD_DIR)/boot.o \
+OBJS += $(BUILD_DIR)/boot_entry.o \
         $(BUILD_DIR)/asm_utils.o \
         $(BUILD_DIR)/math_asm.o
 
@@ -62,7 +62,7 @@ $(BUILD_DIR):
 $(ISO_DIR)/boot/grub:
 	mkdir -p $(ISO_DIR)/boot/grub
 
-$(BUILD_DIR)/boot.o: boot/boot.S | $(BUILD_DIR)
+$(BUILD_DIR)/boot_entry.o: boot/boot.S | $(BUILD_DIR)
 	$(AS) $(ASFLAGS) -c boot/boot.S -o $@
 
 $(BUILD_DIR)/asm_utils.o: src/asm_utils.S | $(BUILD_DIR)

@@ -185,6 +185,25 @@ isr_common_stub:
     add $8, %esp
     iret
 
+.global cpuid
+.type cpuid, @function
+cpuid:
+    push %ebp
+    mov %esp, %ebp
+    push %ebx
+    push %edi
+    mov 8(%ebp), %eax
+    mov 12(%ebp), %edi
+    cpuid
+    mov %eax, 0(%edi)
+    mov %ebx, 4(%edi)
+    mov %ecx, 8(%edi)
+    mov %edx, 12(%edi)
+    pop %edi
+    pop %ebx
+    pop %ebp
+    ret
+
 .global gdt_load
 .type gdt_load, @function
 gdt_load:

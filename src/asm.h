@@ -11,5 +11,6 @@ unsigned char inb(unsigned short port);
 void outb(unsigned short port, unsigned char value);
 void console_putxy(int x, int y, char c, unsigned char attr);
 void memsetw_asm(void *dest, unsigned short value, unsigned int count);
+void cpuid(unsigned int code, unsigned int *result);
 
 #endif /* ASM_H */

@@ -16,6 +16,9 @@
 #include "asm.h"
 #include <stdbool.h>
 
+unsigned long sys_mem_lower;
+unsigned long sys_mem_upper;
+
 struct multiboot_info {
 	unsigned long flags;
 	unsigned long mem_lower;
@@ -81,6 +84,11 @@ void kmain(unsigned long mbi_addr)
 
 	if (mbi_addr) {
 		struct multiboot_info *mbi = (struct multiboot_info *)mbi_addr;
+
+		if (mbi->flags & 0x1) {
+			sys_mem_lower = mbi->mem_lower;
+			sys_mem_upper = mbi->mem_upper;
+		}
 
 		if (mbi->flags & 0x8) {
 			print_tag("OK", "Multiboot modules detected\n", VGA_GREEN);

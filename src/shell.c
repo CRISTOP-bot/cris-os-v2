@@ -10,7 +10,12 @@
 #include "calc_app.h"
 #include "mouse.h"
 #include "kstring.h"
+#include "timer.h"
+#include "fs.h"
 #include <stdbool.h>
+
+extern unsigned long sys_mem_lower;
+extern unsigned long sys_mem_upper;
 
 static const char *parse_token(const char *s, char *out, int maxlen)
 {
@@ -194,11 +199,12 @@ static void print_help(void)
 	console_print("  stat    Display file information\n");
 	console_print("  df      Show filesystem usage\n");
 	console_print_color("\n-- System --\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
-	console_print("  uname   Display system information\n");
-	console_print("  whoami  Display current user\n");
-	console_print("  clear   Clear screen\n");
-	console_print("  reboot  Reboot the system\n");
-	console_print("  panic   Trigger kernel panic\n");
+	console_print("  uname      Display system information\n");
+	console_print("  whoami     Display current user\n");
+	console_print("  fastfetch  Show system information (neofetch-like)\n");
+	console_print("  clear      Clear screen\n");
+	console_print("  reboot     Reboot the system\n");
+	console_print("  panic      Trigger kernel panic\n");
 	console_print_color("\n-- Services --\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
 	console_print("  systemctl  Service manager\n");
 	console_print("  bootctl    Boot manager\n");
@@ -220,6 +226,70 @@ static const char *layout_name(int id)
 	case KB_LAYOUT_DE: return "de (German)";
 	default:           return "unknown";
 	}
+}
+
+static void print_cpu_vendor(char *out, int maxlen)
+{
+	unsigned int res[4];
+	out[0] = '\0';
+	cpuid(0, res);
+	if (res[0] == 0) return;
+	unsigned char *vendor = (unsigned char *)&res[1];
+	int i;
+	for (i = 0; i < 12 && i < maxlen - 1; ++i)
+		out[i] = vendor[i];
+	out[i] = '\0';
+}
+
+static void fastfetch(void)
+{
+	char buf[32];
+	char cpu_vendor[16];
+
+	print_cpu_vendor(cpu_vendor, sizeof(cpu_vendor));
+
+	unsigned char attr_label = VGA_ATTR(VGA_CYAN, VGA_BLACK);
+	unsigned char attr_val  = VGA_ATTR(VGA_WHITE, VGA_BLACK);
+	unsigned char attr_sep  = VGA_DEFAULT_ATTR;
+
+	console_print_color("\n", attr_sep);
+	console_print_color("             #####\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+	console_print_color("            #######           ", attr_label); console_print_color("OS:      ", attr_label); console_print_color("CrisOS v2 i386\n", attr_val);
+	console_print_color("            ##               ", attr_label); console_print_color("Kernel:  ", attr_label); console_print_color("CrisOS v2\n", attr_val);
+	console_print_color("            ##               ", attr_label);
+	if (cpu_vendor[0])
+		console_print_color("CPU:     ", attr_label);
+	else
+		console_print_color("CPU:     ", attr_label);
+	console_print_color(cpu_vendor[0] ? cpu_vendor : "i386 (no CPUID)", attr_val);
+	console_print("\n");
+	console_print_color("            ##               ", attr_label); console_print_color("Uptime:  ", attr_label);
+	unsigned long ticks = timer_get_ticks();
+	unsigned long secs = ticks / 100;
+	kitoa(secs, buf, sizeof(buf));
+	console_print_color(buf, attr_val);
+	console_print_color("s\n", attr_val);
+	console_print_color("            ##               ", attr_label); console_print_color("Memory:  ", attr_label);
+	if (sys_mem_upper) {
+		kitoa((sys_mem_upper + sys_mem_lower) / 1024, buf, sizeof(buf));
+		console_print_color(buf, attr_val);
+		console_print_color(" MB\n", attr_val);
+	} else {
+		console_print_color("not detected\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	}
+	console_print_color("            ##               ", attr_label); console_print_color("Shell:   ", attr_label); console_print_color("CrisOS Shell\n", attr_val);
+	console_print_color("            ##               ", attr_label); console_print_color("Term:    ", attr_label); console_print_color("VGA 80x25\n", attr_val);
+	console_print_color("            ##               ", attr_label); console_print_color("User:    ", attr_label); console_print_color("cris\n", attr_val);
+	console_print_color("           ###               ", attr_label); console_print_color("Layout:  ", attr_label);
+	console_print_color(layout_name(keyboard_get_layout()), attr_val);
+	console_print("\n");
+	unsigned long nfiles = fs_file_count();
+	kitoa(nfiles, buf, sizeof(buf));
+	console_print_color("          ## ##              ", attr_label); console_print_color("Files:   ", attr_label);
+	console_print_color(buf, attr_val);
+	console_print_color(" in rootfs\n", attr_val);
+	console_print_color("         ##   ##      \n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+	console_print("\n");
 }
 
 void shell_run(void)
@@ -407,6 +477,10 @@ void shell_run(void)
 		}
 		if (kstreq(cmd, "mouse")) {
 			show_mouse_state();
+			continue;
+		}
+		if (kstreq(cmd, "fastfetch") || kstreq(cmd, "neofetch") || kstreq(cmd, "sysinfo")) {
+			fastfetch();
 			continue;
 		}
 		if (kstreq(cmd, "kblayout")) {

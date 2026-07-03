@@ -16,7 +16,7 @@ KERNEL = $(BUILD_DIR)/kernel.bin
 ROOTFS = $(ISO_DIR)/boot/rootfs.bin
 QEMU   = qemu-system-i386
 
-CFLAGS  = -ffreestanding -O2 -Wall -Wextra -m32 -nostdlib -std=c99 -I src -fno-stack-protector
+CFLAGS  = -ffreestanding -O2 -Wall -Wextra -m32 -nostdlib -std=c99 -I src -fno-stack-protector -mno-sse -mno-sse2 -mno-mmx -mno-3dnow
 ASFLAGS = -m32 -ffreestanding
 LDFLAGS = -m elf_i386 -nostdlib
 

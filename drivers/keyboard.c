@@ -4,15 +4,6 @@
 #include "pic.h"
 #include <stdbool.h>
 
-static void kb_serial_out(char c) {
-	while (!(inb(0x3F8 + 5) & 0x20));
-	outb(0x3F8, c);
-}
-
-static void kb_serial_print(const char *s) {
-	while (*s) kb_serial_out(*s++);
-}
-
 #define SCANCODE_BUF_SIZE 128
 
 /* ---- Keyboard layouts ---- */
@@ -84,29 +75,18 @@ static volatile int buf_head, buf_tail;
 
 static void layout_populate(void)
 {
-	const char hex[] = "0123456789ABCDEF";
 	for (int i = 0; i < 128; ++i) {
-		kb_serial_out(hex[i >> 4]);
-		kb_serial_out(hex[i & 0xF]);
-		kb_serial_out(' ');
-		unsigned char v = us_normal[i];
-		layouts[0].normal[i]  = v;
-		v = us_shifted[i];
-		layouts[0].shifted[i] = v;
-		v = es_normal[i];
-		layouts[1].normal[i]  = v;
-		v = es_shifted[i];
-		layouts[1].shifted[i] = v;
-		v = de_normal[i];
-		layouts[2].normal[i]  = v;
-		v = de_shifted[i];
-		layouts[2].shifted[i] = v;
+		layouts[0].normal[i]  = us_normal[i];
+		layouts[0].shifted[i] = us_shifted[i];
+		layouts[1].normal[i]  = es_normal[i];
+		layouts[1].shifted[i] = es_shifted[i];
+		layouts[2].normal[i]  = de_normal[i];
+		layouts[2].shifted[i] = de_shifted[i];
 	}
 }
 
 void keyboard_init(void)
 {
-	kb_serial_print("kbd_init entry\n");
 	shift_state = false;
 	caps_lock = false;
 	ctrl_state = false;
@@ -114,9 +94,7 @@ void keyboard_init(void)
 	extended_code = false;
 	current_layout = KB_LAYOUT_US;
 	buf_head = buf_tail = 0;
-	kb_serial_print("kbd before layout_populate\n");
 	layout_populate();
-	kb_serial_print("kbd after layout_populate\n");
 }
 
 static char normalize_key(char c)

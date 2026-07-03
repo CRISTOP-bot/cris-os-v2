@@ -33,73 +33,34 @@ struct multiboot_module {
 	unsigned long reserved;
 };
 
-static void serial_out(char c) {
-	while (!(inb(0x3F8 + 5) & 0x20));
-	outb(0x3F8, c);
-}
-
-static void serial_print(const char *s) {
-	while (*s) serial_out(*s++);
-}
-
 void kmain(unsigned long mbi_addr)
 {
-	/* init serial port (115200 8N1) */
-	outb(0x3F8 + 1, 0x00);
-	outb(0x3F8 + 3, 0x80);
-	outb(0x3F8 + 0, 0x01);
-	outb(0x3F8 + 1, 0x00);
-	outb(0x3F8 + 3, 0x03);
-	outb(0x3F8 + 2, 0xC7);
-	outb(0x3F8 + 4, 0x0B);
-	serial_print("kmain() started\n");
-
 	console_clear();
-	serial_print("console_clear done\n");
 
-	for (volatile int i = 0; i < 100000; i++); // tiny delay
-	serial_print("starting console_print\n");
+	for (volatile int i = 0; i < 100000; i++); /* tiny delay */
 	console_print("================================\n");
-	serial_print("after first print\n");
 	console_print("        CrisOS Kernel\n");
-	serial_print("after second print\n");
 	console_print("================================\n\n");
-	serial_print("after third print\n");
 
 	console_print("[ OK ] Console initialized\n");
-	serial_print("before gdt_init\n");
 
 	gdt_init();
-	serial_print("after gdt_init\n");
 
-	serial_print("before idt_init\n");
 	idt_init();
-	serial_print("after idt_init\n");
 
-	serial_print("before pic_init\n");
 	pic_init();
-	serial_print("after pic_init\n");
 	console_print("[ OK ] PIC initialized (IRQs 0-15 remapped)\n");
 
-	serial_print("before pic_mask\n");
-	pic_mask(0xFD, 0xFF); /* enable only IRQ1 (keyboard) -- polling mode */
-	serial_print("after pic_mask\n");
+	pic_mask(0xFD, 0xFF); /* enable only IRQ1 (keyboard) */
 
-	serial_print("before timer_init\n");
 	timer_init(100);
-	serial_print("after timer_init\n");
 	console_print("[ OK ] PIT timer initialized (100 Hz)\n");
 
-	serial_print("before keyboard_init\n");
 	keyboard_init();
-	serial_print("after keyboard_init\n");
 	console_print("[ OK ] Keyboard initialized\n");
 
-	serial_print("before mouse_init\n");
 	mouse_init();
-	serial_print("after mouse_init\n");
 	pic_mask(0xFC, 0xEF); /* enable IRQ1 + IRQ12 */
-	serial_print("after second pic_mask\n");
 
 	bool rootfs_loaded = false;
 

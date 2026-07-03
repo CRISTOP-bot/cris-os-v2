@@ -29,15 +29,18 @@
 - **GDT/IDT** — Segmentación y tabla de interrupciones completamente configuradas.
 - **PIC (8259A)** — Remapeo de IRQ y enmascaramiento.
 - **PIT (8253)** — Timer programable a 100 Hz.
-- **Teclado PS/2** — Controlador con soporte de interrupciones y layout QWERTY/QWERTY-latam.
+- **Teclado PS/2** — Controlador con soporte de interrupciones y layout QWERTY/ES/DE intercambiable.
 - **Mouse PS/2** — Controlador con soporte de interrupciones.
-- **Consola VGA** — Modo texto 80×25 con colores.
-- **Shell interactivo** — Comandos nativos (`ls`, `cat`, `clear`, `calc`, `sysinfo`, `shutdown`, etc.).
+- **Consola VGA** — Modo texto 80×25 con soporte completo de colores (16 colores VGA).
+- **Shell interactivo** — Prompt coloreado (`cris@crisos:/path$`), historial, comandos nativos.
+- **fastfetch** — Información del sistema: CPU (vía CPUID), memoria, uptime, archivos, layout.
+- **GUI estilo KDE Plasma** — Escritorio con íconos, panel inferior con reloj y lanzador de aplicaciones.
 - **VFS** — Sistema de archivos virtual con soporte para subdirectorios.
 - **Rootfs** — Sistema de archivos raíz cargado como módulo Multiboot.
 - **Systemd** — Gestor de servicios tipo *init* con arranque y detención básicos.
 - **LCP (Process Manager)** — Carga y gestión de procesos desde repositorios locales.
 - **Calculadora** — Evaluador de expresiones aritméticas en C y ensamblador.
+- **CPUID** — Detección de vendor, familia y características del procesador.
 - **Salida serial** — Debug por puerto serie (COM1, 115200 baud).
 
 ---
@@ -45,28 +48,33 @@
 ## 🏗️ Arquitectura
 
 ```
-┌─────────────────────────────────────────┐
-│           GRUB (Multiboot)              │
-├─────────────────────────────────────────┤
-│  kmain() ─── init ─── shell             │
-│    ├── gdt_init()                       │
-│    ├── idt_init()                       │
-│    ├── pic_init() / pic_mask()          │
-│    ├── timer_init()                     │
-│    ├── keyboard_init()                  │
-│    ├── mouse_init()                     │
-│    ├── boot_init()                      │
-│    ├── systemd_init()                   │
-│    └── lcp_init()                       │
-├─────────────────────────────────────────┤
-│  Drivers:    console, keyboard, mouse   │
-│              pic, timer                 │
-│  Servicios:  systemd, lcp, shell        │
-│  Utilidades: calc, kstring             │
-└─────────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│              GRUB (Multiboot)              │
+├────────────────────────────────────────────┤
+│  kmain() ─── init ─── shell / gui         │
+│    ├── gdt_init()                         │
+│    ├── idt_init()                         │
+│    ├── pic_init() / pic_mask()            │
+│    ├── timer_init()                       │
+│    ├── keyboard_init()                    │
+│    ├── mouse_init()                       │
+│    ├── boot_init()                        │
+│    ├── systemd_init()                     │
+│    └── lcp_init()                         │
+├────────────────────────────────────────────┤
+│  Shell:  fastfetch, ls, cat, grep, calc   │
+│  GUI:    Plasma-like desktop + panel      │
+│  VGA:    Colores (16), ASCII art, marcos  │
+│  CPUID:  Detección de vendor CPU          │
+├────────────────────────────────────────────┤
+│  Drivers:    console, keyboard, mouse     │
+│              pic, timer                   │
+│  Servicios:  systemd, lcp, shell         │
+│  Utilidades: calc, kstring, cpuid        │
+└────────────────────────────────────────────┘
 ```
 
-El flujo de arranque comienza en `boot/boot.S` (punto de entrada `start`), que configura la pila, limpia segmentos y salta a `kmain()` en C. `kmain` inicializa los subsistemas en orden, carga el rootfs vía Multiboot y lanza el shell interactivo.
+El flujo de arranque comienza en `boot/boot.S` (punto de entrada `start`), que configura la pila, limpia segmentos y salta a `kmain()` en C. `kmain` inicializa los subsistemas en orden, carga el rootfs vía Multiboot y lanza el shell interactivo (o la GUI Plasma escribiendo `gui`).
 
 ---
 
@@ -202,6 +210,42 @@ qemu-system-i386 -cdrom os.iso -m 512M -serial tcp::4444,server -monitor stdio
 ├── Makefile                # Build system
 └── os.iso                  # ISO de arranque (opcional, generada con make run)
 ```
+
+---
+
+## 📟 Comandos del Shell
+
+| Comando       | Descripción                                         |
+|---------------|-----------------------------------------------------|
+| `help`        | Muestra ayuda categorizada                          |
+| `fastfetch`   | Información del sistema (CPU, RAM, uptime, etc.)    |
+| `gui`         | Inicia la interfaz gráfica estilo KDE Plasma        |
+| `ls`          | Lista contenido del directorio                      |
+| `pwd`         | Muestra el directorio actual                        |
+| `cd`          | Cambia de directorio                                |
+| `mkdir`       | Crea un directorio                                  |
+| `rmdir`       | Elimina un directorio                               |
+| `touch`       | Crea un archivo vacío                               |
+| `rm`          | Elimina un archivo                                  |
+| `cp`          | Copia un archivo                                    |
+| `mv`          | Mueve o renombra un archivo                         |
+| `cat`         | Muestra contenido de un archivo                     |
+| `grep`        | Busca texto en un archivo                           |
+| `echo`        | Imprime texto o escribe a archivo                   |
+| `stat`        | Muestra información de un archivo                   |
+| `df`          | Muestra uso del sistema de archivos                 |
+| `clear`       | Limpia la pantalla                                  |
+| `uname`       | Muestra información del sistema                     |
+| `whoami`      | Muestra el usuario actual                           |
+| `kblayout`    | Cambia el layout del teclado (us/es/de)             |
+| `mouse`       | Muestra el estado del mouse                         |
+| `calc`        | Calculadora de expresiones                          |
+| `asm`         | Operaciones aritméticas en ensamblador              |
+| `systemctl`   | Gestor de servicios                                 |
+| `bootctl`     | Gestor de arranque                                  |
+| `lcp`         | Gestor de paquetes                                  |
+| `reboot`      | Reinicia el sistema                                 |
+| `panic`       | Falla el kernel (debug)                             |
 
 ---
 

@@ -170,7 +170,7 @@ static void run_start_menu_item(int idx)
 		return;
 	case 2:
 		console_print_color("System Status\n\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-		console_print("Kernel: CrisOS v2 i386\n");
+		console_print("Kernel: CrisOS v3 i386\n");
 		unsigned long ticks = timer_get_ticks();
 		char buf[16];
 		kitoa(ticks / 100, buf, sizeof(buf));

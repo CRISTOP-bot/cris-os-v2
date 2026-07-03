@@ -300,6 +300,26 @@ bool vfs_init(void)
 			current = child;
 		}
 	}
+
+	const char *std_dirs[] = {
+		"proc", "sys", "dev", "tmp", "etc", "usr", "var",
+		"mnt", "opt", "srv", "run", "home"
+	};
+	for (size_t i = 0; i < sizeof(std_dirs) / sizeof(std_dirs[0]); ++i) {
+		int existing = vfs_find_child(root_node, std_dirs[i]);
+		if (existing < 0) {
+			int node = vfs_new_node();
+			if (node >= 0) {
+				vfs_clear_node(node);
+				kstrcpy(nodes[node].name, std_dirs[i], VFS_NAME_SIZE);
+				nodes[node].is_dir = true;
+				nodes[node].read_only = true;
+				nodes[node].parent = root_node;
+				nodes[node].child_count = 0;
+				vfs_add_child(root_node, node);
+			}
+		}
+	}
 	return true;
 }
 

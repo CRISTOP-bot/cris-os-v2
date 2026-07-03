@@ -52,7 +52,7 @@ static void print_banner(void)
 	console_print_color(" ██      ██    ██ ██ ███████ ██    ██ ███████ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
 	console_print_color(" ██      ██    ██ ██      ██ ██    ██      ██ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
 	console_print_color("  ██████  ██████  ██ ███████  ██████  ███████ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color("                     Operating System v2\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	console_print_color("                     Operating System v3\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
 	console_print("\n");
 }
 

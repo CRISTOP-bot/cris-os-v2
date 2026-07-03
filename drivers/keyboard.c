@@ -109,13 +109,23 @@ static char normalize_key(char c)
         return c;
 }
 
+static int wait_keyboard_data(void)
+{
+        int timeout = 100000;
+        while (!(inb(0x64) & 1)) {
+                if (--timeout <= 0)
+                        return -1;
+        }
+        return 0;
+}
+
 char keyboard_read_char(void)
 {
         unsigned char sc;
 
         while (1) {
-                while (!(inb(0x64) & 1))
-                        ;
+                if (wait_keyboard_data() < 0)
+                        continue;
 
                 sc = inb(0x60);
 

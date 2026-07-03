@@ -1,4 +1,4 @@
-# CrisOS v2
+# CrisOS v3
 
 ![Architecture](https://img.shields.io/badge/architecture-i386-blue?style=flat-square)
 ![Language](https://img.shields.io/badge/language-C%2BASM-orange?style=flat-square)
@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-GPLv3-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-experimental-red?style=flat-square)
 
-**CrisOS v2** es un sistema operativo modular experimental para **i386** que arranca mediante el estándar **Multiboot** con GRUB. Desarrollado en C y ensamblador x86, proporciona una base para el estudio de arquitectura de sistemas, gestión de recursos y desarrollo de kernels.
+**CrisOS v3** es un sistema operativo modular experimental para **i386** que arranca mediante el estándar **Multiboot** con GRUB. Desarrollado en C y ensamblador x86, proporciona una base para el estudio de arquitectura de sistemas, gestión de recursos y desarrollo de kernels.
 
 ---
 

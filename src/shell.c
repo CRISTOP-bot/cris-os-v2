@@ -254,8 +254,8 @@ static void fastfetch(void)
 
 	console_print_color("\n", attr_sep);
 	console_print_color("             #####\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
-	console_print_color("            #######           ", attr_label); console_print_color("OS:      ", attr_label); console_print_color("CrisOS v2 i386\n", attr_val);
-	console_print_color("            ##               ", attr_label); console_print_color("Kernel:  ", attr_label); console_print_color("CrisOS v2\n", attr_val);
+	console_print_color("            #######           ", attr_label); console_print_color("OS:      ", attr_label); console_print_color("CrisOS v3 i386\n", attr_val);
+	console_print_color("            ##               ", attr_label); console_print_color("Kernel:  ", attr_label); console_print_color("CrisOS v3\n", attr_val);
 	console_print_color("            ##               ", attr_label);
 	if (cpu_vendor[0])
 		console_print_color("CPU:     ", attr_label);
@@ -297,7 +297,7 @@ void shell_run(void)
 	char buf[256];
 
 	console_print_color("============================================\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
-	console_print_color("  Welcome to CrisOS v2 Interactive Shell\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("  Welcome to CrisOS v3 Interactive Shell\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
 	console_print_color("  Type 'help' for a list of commands\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
 	console_print_color("============================================\n\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
 
@@ -406,7 +406,7 @@ void shell_run(void)
 		if (kstreq(cmd, "uname")) {
 			console_print_color("CrisOS", VGA_ATTR(VGA_CYAN, VGA_BLACK));
 			console_print_color(" i386 ", VGA_DEFAULT_ATTR);
-			console_print_color("v2\n", VGA_ATTR(VGA_GREEN, VGA_BLACK));
+			console_print_color("v3\n", VGA_ATTR(VGA_GREEN, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "whoami")) {

@@ -166,6 +166,52 @@ static void show_mouse_state(void)
 	console_print("\n");
 }
 
+static void print_prompt(void)
+{
+	console_print_color("cris", VGA_ATTR(VGA_GREEN, VGA_BLACK));
+	console_print_color("@", VGA_DEFAULT_ATTR);
+	console_print_color("crisos", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color(":", VGA_DEFAULT_ATTR);
+	console_print_color(vfs_pwd(), VGA_ATTR(VGA_LIGHT_BLUE, VGA_BLACK));
+	console_print_color("$ ", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+}
+
+static void print_help(void)
+{
+	console_print_color("\n-- Filesystem --\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+	console_print("  ls      List directory contents\n");
+	console_print("  pwd     Print working directory\n");
+	console_print("  cd      Change directory\n");
+	console_print("  mkdir   Create directory\n");
+	console_print("  rmdir   Remove directory\n");
+	console_print("  touch   Create empty file\n");
+	console_print("  rm      Remove file\n");
+	console_print("  cp      Copy file\n");
+	console_print("  mv      Move/rename file\n");
+	console_print("  cat     Display file contents\n");
+	console_print("  grep    Search in file\n");
+	console_print("  echo    Print text or write to file\n");
+	console_print("  stat    Display file information\n");
+	console_print("  df      Show filesystem usage\n");
+	console_print_color("\n-- System --\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+	console_print("  uname   Display system information\n");
+	console_print("  whoami  Display current user\n");
+	console_print("  clear   Clear screen\n");
+	console_print("  reboot  Reboot the system\n");
+	console_print("  panic   Trigger kernel panic\n");
+	console_print_color("\n-- Services --\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+	console_print("  systemctl  Service manager\n");
+	console_print("  bootctl    Boot manager\n");
+	console_print("  lcp        Package manager\n");
+	console_print_color("\n-- Misc --\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+	console_print("  asm        Arithmetic via assembly\n");
+	console_print("  calc       Expression calculator\n");
+	console_print("  kblayout   Change keyboard layout\n");
+	console_print("  mouse      Show mouse state\n");
+	console_print("  gui        Show GUI (experimental)\n");
+	console_print("\n");
+}
+
 static const char *layout_name(int id)
 {
 	switch (id) {
@@ -179,8 +225,14 @@ static const char *layout_name(int id)
 void shell_run(void)
 {
 	char buf[256];
+
+	console_print_color("============================================\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	console_print_color("  Welcome to CrisOS v2 Interactive Shell\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("  Type 'help' for a list of commands\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	console_print_color("============================================\n\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+
 	while (1) {
-		console_print("> ");
+		print_prompt();
 		int n = keyboard_readline(buf, sizeof(buf));
 		if (n == 0)
 			continue;
@@ -196,10 +248,7 @@ void shell_run(void)
 		copy_rest(tail, rest, sizeof(rest));
 
 		if (kstreq(cmd, "help")) {
-			console_print("Commands: help clear ls pwd cd mkdir rmdir rm touch\n");
-			console_print(" cp mv cat grep echo uname whoami df stat panic\n");
-			console_print(" reboot lcp systemctl bootctl gui asm calc\n");
-			console_print(" kblayout mouse\n");
+			print_help();
 			continue;
 		}
 		if (kstreq(cmd, "clear")) {
@@ -207,7 +256,7 @@ void shell_run(void)
 			continue;
 		}
 		if (kstreq(cmd, "pwd")) {
-			console_print(vfs_pwd());
+			console_print_color(vfs_pwd(), VGA_ATTR(VGA_LIGHT_BLUE, VGA_BLACK));
 			console_print("\n");
 			continue;
 		}
@@ -215,69 +264,69 @@ void shell_run(void)
 			if (arg1[0] == '\0')
 				console_print("Usage: cd <path>\n");
 			else if (!vfs_cd(arg1))
-				console_print("Directory not found\n");
+				console_print_color("cd: directory not found\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "ls")) {
 			const char *path = arg1[0] ? arg1 : 0;
 			if (!vfs_list(path))
-				console_print("Invalid path\n");
+				console_print_color("ls: invalid path\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "mkdir")) {
 			if (arg1[0] == '\0')
 				console_print("Usage: mkdir <path>\n");
 			else if (!vfs_mkdir(arg1))
-				console_print("Cannot create directory\n");
+				console_print_color("mkdir: cannot create directory\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "rmdir")) {
 			if (arg1[0] == '\0')
 				console_print("Usage: rmdir <path>\n");
 			else if (!vfs_rmdir(arg1))
-				console_print("Cannot remove directory\n");
+				console_print_color("rmdir: cannot remove directory\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "rm")) {
 			if (arg1[0] == '\0')
 				console_print("Usage: rm <path>\n");
 			else if (!vfs_remove(arg1))
-				console_print("Cannot remove file\n");
+				console_print_color("rm: cannot remove file\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "touch")) {
 			if (arg1[0] == '\0')
 				console_print("Usage: touch <path>\n");
 			else if (!vfs_touch(arg1))
-				console_print("Cannot touch file\n");
+				console_print_color("touch: cannot create file\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "cp")) {
 			if (arg1[0] == '\0' || arg2[0] == '\0')
 				console_print("Usage: cp <src> <dst>\n");
 			else if (!vfs_cp(arg1, arg2))
-				console_print("Copy failed\n");
+				console_print_color("cp: copy failed\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "mv")) {
 			if (arg1[0] == '\0' || arg2[0] == '\0')
 				console_print("Usage: mv <src> <dst>\n");
 			else if (!vfs_mv(arg1, arg2))
-				console_print("Move failed\n");
+				console_print_color("mv: move failed\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "cat")) {
 			if (arg1[0] == '\0')
 				console_print("Usage: cat <file>\n");
 			else if (!vfs_cat(arg1))
-				console_print("File not found or is a directory\n");
+				console_print_color("cat: file not found or is a directory\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "grep")) {
 			if (arg1[0] == '\0' || arg2[0] == '\0')
 				console_print("Usage: grep <pattern> <file>\n");
 			else if (!grep_file(arg2, arg1))
-				console_print("Pattern search failed\n");
+				console_print_color("grep: pattern not found\n", VGA_ATTR(VGA_RED, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "echo")) {
@@ -285,30 +334,39 @@ void shell_run(void)
 			continue;
 		}
 		if (kstreq(cmd, "uname")) {
-			console_print("CrisOS i386\n");
+			console_print_color("CrisOS", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+			console_print_color(" i386 ", VGA_DEFAULT_ATTR);
+			console_print_color("v2\n", VGA_ATTR(VGA_GREEN, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "whoami")) {
-			console_print("cris\n");
+			console_print_color("cris\n", VGA_ATTR(VGA_GREEN, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "df")) {
-			console_print("Filesystem  1K-blocks  Used  Avail  Mounted on\n");
-			console_print("rootfs      64        8     56     /\n");
+			console_print_color("Filesystem  ", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+			console_print_color("1K-blocks  ", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+			console_print_color("Used  ", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+			console_print_color("Avail  ", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+			console_print_color("Mounted on\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+			console_print_color("rootfs      64        8     56     /\n", VGA_ATTR(VGA_LIGHT_GREY, VGA_BLACK));
 			continue;
 		}
 		if (kstreq(cmd, "stat")) {
 			if (arg1[0] == '\0') {
 				console_print("Usage: stat <file>\n");
 			} else if (!vfs_exists(arg1)) {
-				console_print("No such file or directory\n");
+				console_print_color("stat: ", VGA_ATTR(VGA_RED, VGA_BLACK));
+				console_print(arg1);
+				console_print(": no such file or directory\n");
 			} else {
 				size_t size = vfs_get_size(arg1);
-				console_print(arg1);
-				console_print(" - size: ");
+				console_print("  File: ");
+				console_print_color(arg1, VGA_ATTR(VGA_WHITE, VGA_BLACK));
+				console_print("\n  Size: ");
 				char num[32];
 				kitoa((long)size, num, sizeof(num));
-				console_print(num);
+				console_print_color(num, VGA_ATTR(VGA_CYAN, VGA_BLACK));
 				console_print(" bytes\n");
 			}
 			continue;
@@ -378,6 +436,8 @@ void shell_run(void)
 			}
 			continue;
 		}
-		console_print("Unknown command. Type 'help' for a list of commands.\n");
+		console_print_color("crisos: command not found: ", VGA_ATTR(VGA_RED, VGA_BLACK));
+		console_print_color(cmd, VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print("\n");
 	}
 }

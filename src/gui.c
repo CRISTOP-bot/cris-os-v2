@@ -4,6 +4,7 @@
 #include "timer.h"
 #include "kstring.h"
 #include "asm.h"
+#include "mouse.h"
 #include <stdbool.h>
 
 #define PANEL_ROW 23
@@ -200,6 +201,67 @@ static void run_start_menu_item(int idx)
 	keyboard_read_char();
 }
 
+static int get_region(int mx, int my, bool in_menu)
+{
+	if (in_menu) {
+		/* start menu items: rows 6..12, col 2..27 */
+		if (my >= 6 && my <= 12 && mx >= 2 && mx <= 27)
+			return 10 + (my - 6);
+		return -1;
+	}
+	/* start button */
+	if (my == 23 && mx >= 0 && mx <= 6)
+		return 0;
+	/* desktop icons */
+	if (my >= 1 && my <= 8 && mx >= 1 && mx <= 6)  return 1;  /* Home */
+	if (my >= 1 && my <= 8 && mx >= 19 && mx <= 24) return 2;  /* Files */
+	if (my >= 1 && my <= 8 && mx >= 37 && mx <= 42) return 3;  /* Term */
+	if (my >= 1 && my <= 8 && mx >= 55 && mx <= 60) return 4;  /* Settings */
+	if (my >= 8 && my <= 15 && mx >= 1 && mx <= 6)  return 5;  /* Trash */
+	return -1;
+}
+
+static bool handle_mouse(int mx, int my, bool *start_open, int *menu_idx)
+{
+	if (*start_open) {
+		int r = get_region(mx, my, true);
+		if (r >= 10 && r <= 16) {
+			int idx = r - 10;
+			run_start_menu_item(idx);
+			if (idx == 5) {
+				console_clear();
+				return true;
+			}
+			if (idx == 0 || idx == 1) {
+				console_clear();
+				return true;
+			}
+			*start_open = false;
+		} else {
+			*start_open = false;
+		}
+		return false;
+	}
+	/* check start button */
+	if (get_region(mx, my, false) == 0) {
+		*start_open = true;
+		*menu_idx = 0;
+		return false;
+	}
+	int r = get_region(mx, my, false);
+	if (r >= 1 && r <= 5) {
+		icon_selected = r - 1;
+		int icon_actions[] = {0, 1, 2, 3, 4};
+		run_start_menu_item(icon_actions[icon_selected]);
+		if (icon_actions[icon_selected] == 0 ||
+		    icon_actions[icon_selected] == 1) {
+			console_clear();
+			return true;
+		}
+	}
+	return false;
+}
+
 void gui_show(void)
 {
 	icon_selected = 0;
@@ -215,8 +277,27 @@ void gui_show(void)
 			console_putxy(2, 3 + 3 + menu_idx, 0x10, MENU_SEL);
 		}
 
-		char c = keyboard_read_char();
-		if (!c) continue;
+		/* render mouse cursor on top of everything */
+		mouse_render();
+
+		/* poll both keyboard and mouse */
+		char c = 0;
+		for (int poll = 0; poll < 2000; poll++) {
+			if (keyboard_data_available()) {
+				c = keyboard_read_char();
+				break;
+			}
+			int mx, my;
+			if (mouse_get_click(&mx, &my)) {
+				if (handle_mouse(mx, my, &start_open, &menu_idx))
+					return;
+				c = 0;
+				break;
+			}
+		}
+
+		if (!c)
+			continue;
 
 		if (start_open) {
 			switch (c) {

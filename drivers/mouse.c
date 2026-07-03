@@ -7,10 +7,19 @@
 #define MOUSE_CMD   0x64
 #define MOUSE_DATA  0x60
 #define MOUSE_ACK   0xFA
+#define VGA_BUF     ((volatile unsigned short*)0xB8000)
 
 static struct mouse_state mstate;
 static unsigned char pkt_buf[3];
 static int pkt_idx;
+
+static int cursor_old_x = -1, cursor_old_y = -1;
+static unsigned short cursor_saved_cell = 0;
+static bool cursor_shown = false;
+
+static unsigned char prev_buttons = 0;
+static int click_x = -1, click_y = -1;
+static bool click_pending = false;
 
 static bool mouse_wait_write(void)
 {
@@ -44,7 +53,7 @@ static void mouse_write(unsigned char val)
 	outb(MOUSE_CMD, 0xD4);
 	mouse_wait_write();
 	outb(MOUSE_DATA, val);
-	mouse_read();  /* ack */
+	mouse_read();
 }
 
 void mouse_init(void)
@@ -56,19 +65,18 @@ void mouse_init(void)
 	mstate.delta_y = 0;
 	pkt_idx = 0;
 
-	/* Enable PS/2 mouse */
 	mouse_wait_write();
-	outb(MOUSE_CMD, 0xA8);        /* enable mouse */
+	outb(MOUSE_CMD, 0xA8);
 	mouse_wait_write();
-	outb(MOUSE_CMD, 0x20);        /* get current command byte */
+	outb(MOUSE_CMD, 0x20);
 	unsigned char status = mouse_read();
-	status |= 2;                   /* enable IRQ12 */
+	status |= 2;
 	mouse_wait_write();
-	outb(MOUSE_CMD, 0x60);        /* set command byte */
+	outb(MOUSE_CMD, 0x60);
 	mouse_wait_write();
 	outb(MOUSE_DATA, status);
-	mouse_write(0xF6);             /* set default settings */
-	mouse_write(0xF4);             /* enable mouse */
+	mouse_write(0xF6);
+	mouse_write(0xF4);
 
 	console_print("[ OK ] PS/2 mouse initialized\n");
 }
@@ -108,4 +116,63 @@ void mouse_get_state(struct mouse_state *state)
 		state->delta_x = mstate.delta_x;
 		state->delta_y = mstate.delta_y;
 	}
+}
+
+void mouse_render(void)
+{
+	mouse_hide();
+
+	cursor_saved_cell = VGA_BUF[mstate.y * 80 + mstate.x];
+
+	unsigned char old_attr = (cursor_saved_cell >> 8) & 0xFF;
+	unsigned char old_fg = old_attr & 0x0F;
+	unsigned char old_bg = (old_attr >> 4) & 0x0F;
+	unsigned char inv_attr = (old_bg == old_fg)
+		? VGA_ATTR(VGA_WHITE, VGA_BLACK)
+		: VGA_ATTR(old_bg, old_fg);
+	unsigned short cursor_cell = (cursor_saved_cell & 0xFF)
+		| ((unsigned short)inv_attr << 8);
+	VGA_BUF[mstate.y * 80 + mstate.x] = cursor_cell;
+
+	cursor_old_x = mstate.x;
+	cursor_old_y = mstate.y;
+	cursor_shown = true;
+
+	if ((prev_buttons & 1) && !(mstate.buttons & 1)) {
+		click_x = mstate.x;
+		click_y = mstate.y;
+		click_pending = true;
+	}
+	prev_buttons = mstate.buttons;
+}
+
+void mouse_hide(void)
+{
+	if (cursor_shown) {
+		VGA_BUF[cursor_old_y * 80 + cursor_old_x] = cursor_saved_cell;
+		cursor_shown = false;
+	}
+	cursor_old_x = -1;
+	cursor_old_y = -1;
+}
+
+bool mouse_clicked(unsigned char btn)
+{
+	(void)btn;
+	if (click_pending) {
+		click_pending = false;
+		return true;
+	}
+	return false;
+}
+
+bool mouse_get_click(int *x, int *y)
+{
+	if (click_pending) {
+		click_pending = false;
+		if (x) *x = click_x;
+		if (y) *y = click_y;
+		return true;
+	}
+	return false;
 }

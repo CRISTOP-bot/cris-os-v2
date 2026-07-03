@@ -166,6 +166,11 @@ char keyboard_read_char(void)
         }
 }
 
+int keyboard_data_available(void)
+{
+	return inb(0x64) & 1;
+}
+
 int keyboard_readline(char *buf, int maxlen)
 {
         int pos = 0;

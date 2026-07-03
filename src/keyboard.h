@@ -7,6 +7,7 @@
 
 void keyboard_init(void);
 char keyboard_read_char(void);
+int keyboard_data_available(void);
 int keyboard_readline(char *buf, int maxlen);
 int keyboard_set_layout(int layout);
 int keyboard_get_layout(void);

@@ -1,0 +1,5 @@
+NAME="CrisOS"
+VERSION="3.0.0"
+ID=crisos
+PRETTY_NAME="CrisOS v3"
+HOME_URL="https://github.com/CRISTOP-bot/cris-os-v2"

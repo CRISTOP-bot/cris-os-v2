@@ -1,2 +1,4 @@
-MiniOS v0.1
-Sistema de archivos básico montado.
+CrisOS v3.0.0 rootfs
+Architecture: i386
+Kernel: CrisOS v3
+Filesystem: CRFS (Cris Root File System)

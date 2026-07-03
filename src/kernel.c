@@ -36,24 +36,45 @@ struct multiboot_module {
 	unsigned long reserved;
 };
 
-static void print_tag(const char *tag, const char *msg, unsigned char color)
+static void boot_status(const char *msg)
 {
-	console_print_color("[ ", VGA_DEFAULT_ATTR);
-	console_print_color(tag, color);
-	console_print_color(" ] ", VGA_DEFAULT_ATTR);
-	console_print(msg);
+	console_print_color("[  OK  ] ", VGA_ATTR(VGA_GREEN, VGA_BLACK));
+	console_print_color(msg, VGA_DEFAULT_ATTR);
+	console_print("\n");
+}
+
+static void boot_failed(const char *msg)
+{
+	console_print_color("[FAILED] ", VGA_ATTR(VGA_RED, VGA_BLACK));
+	console_print_color(msg, VGA_DEFAULT_ATTR);
+	console_print("\n");
+}
+
+static void boot_info(const char *msg)
+{
+	console_print_color("[ INFO ] ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color(msg, VGA_DEFAULT_ATTR);
+	console_print("\n");
+}
+
+static void boot_delay(void)
+{
+	volatile int i;
+	for (i = 0; i < 3000000; i++);
 }
 
 static void print_banner(void)
 {
 	console_print_color("\n", VGA_DEFAULT_ATTR);
-	console_print_color("  ██████  ██████  ██ ███████  ██████  ███████ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color(" ██      ██    ██ ██ ██      ██    ██ ██      \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color(" ██      ██    ██ ██ ███████ ██    ██ ███████ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color(" ██      ██    ██ ██      ██ ██    ██      ██ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color("  ██████  ██████  ██ ███████  ██████  ███████ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("          ██████  ██████  ██ ███████  ██████  ███████ \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+	console_print_color("         ██      ██    ██ ██ ██      ██    ██ ██      \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+	console_print_color("         ██      ██    ██ ██ ███████ ██    ██ ███████ \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+	console_print_color("         ██      ██    ██ ██      ██ ██    ██      ██ \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+	console_print_color("          ██████  ██████  ██ ███████  ██████  ███████ \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
 	console_print_color("                     Operating System v3\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
 	console_print("\n");
+	boot_info("Booting CrisOS v3 i386...\n");
+	boot_delay();
 }
 
 void kmain(unsigned long mbi_addr)
@@ -61,26 +82,35 @@ void kmain(unsigned long mbi_addr)
 	console_clear();
 	print_banner();
 
-	print_tag("OK", "Console initialized\n", VGA_GREEN);
+	boot_status("Started Console");
+	boot_delay();
 	gdt_init();
+	boot_status("Loaded GDT");
+	boot_delay();
 
 	idt_init();
+	boot_status("Loaded IDT");
+	boot_delay();
 
 	pic_init();
-	print_tag("OK", "PIC initialized (IRQs 0-15 remapped)\n", VGA_GREEN);
-
-	pic_mask(0xFD, 0xFF); /* enable only IRQ1 (keyboard) */
+	boot_status("Initialized PIC");
+	boot_delay();
+	pic_mask(0xFD, 0xFF);
 
 	timer_init(100);
-	print_tag("OK", "PIT timer initialized (100 Hz)\n", VGA_GREEN);
+	boot_status("Started PIT");
+	boot_delay();
 
 	keyboard_init();
-	print_tag("OK", "Keyboard initialized\n", VGA_GREEN);
+	boot_status("Initialized Keyboard");
+	boot_delay();
 
 	mouse_init();
-	pic_mask(0xFC, 0xEF); /* enable IRQ1 + IRQ12 */
+	pic_mask(0xFC, 0xEF);
+	boot_status("Initialized Mouse");
 
 	bool rootfs_loaded = false;
+	boot_delay();
 
 	if (mbi_addr) {
 		struct multiboot_info *mbi = (struct multiboot_info *)mbi_addr;
@@ -91,7 +121,8 @@ void kmain(unsigned long mbi_addr)
 		}
 
 		if (mbi->flags & 0x8) {
-			print_tag("OK", "Multiboot modules detected\n", VGA_GREEN);
+			boot_info("Detected Multiboot modules\n");
+			boot_delay();
 
 			struct multiboot_module *mods =
 			    (struct multiboot_module *)mbi->mods_addr;
@@ -99,51 +130,46 @@ void kmain(unsigned long mbi_addr)
 			for (unsigned long i = 0; i < mbi->mods_count; ++i) {
 				const char *name = (const char *)mods[i].cmdline;
 				if (name && kstrstr(name, "rootfs")) {
-					print_tag("...", "Mounting rootfs...\n", VGA_CYAN);
+					boot_info("Mounting rootfs...\n");
+					boot_delay();
 					if (fs_init((const void *)mods[i].mod_start,
 						    mods[i].mod_end - mods[i].mod_start)) {
-						print_tag("OK", "Rootfs mounted\n", VGA_GREEN);
+						boot_status("Mounted rootfs");
+						boot_delay();
 						if (vfs_init()) {
-							print_tag("OK", "VFS initialized\n", VGA_GREEN);
+							boot_status("Initialized VFS");
 							rootfs_loaded = true;
 						} else {
-							print_tag("FAIL", "VFS initialization failed\n", VGA_RED);
+							boot_failed("VFS initialization");
 						}
 					} else {
-						print_tag("FAIL", "Rootfs mount failed\n", VGA_RED);
+						boot_failed("Rootfs mount");
 					}
 					break;
 				}
 			}
 
 			if (!rootfs_loaded)
-				print_tag("WARN", "No rootfs module found or failed to mount\n", VGA_BROWN);
-		} else {
-			print_tag("FAIL", "No multiboot modules found\n", VGA_RED);
+				boot_failed("Rootfs module not found");
 		}
-	} else {
-		print_tag("FAIL", "Invalid multiboot info\n", VGA_RED);
 	}
 
+	boot_delay();
 	boot_init();
-	print_tag("OK", "Boot manager initialized\n", VGA_GREEN);
+	boot_status("Started Boot Manager");
+	boot_delay();
 
 	systemd_init();
-	print_tag("OK", "Service manager initialized\n", VGA_GREEN);
+	boot_status("Started Service Manager");
+	boot_delay();
 
 	lcp_init();
-	print_tag("OK", "LCP package manager initialized\n", VGA_GREEN);
+	boot_status("Started LCP Package Manager");
+	boot_delay();
 
-	int sum = add_asm(7, 5);
-	char buf[32];
-	kitoa(sum, buf, sizeof(buf));
-	console_print("\n  ");
-	console_print_color("[ASM]", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
-	console_print_color(" 7 + 5 = ", VGA_DEFAULT_ATTR);
-	console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_BLACK));
-	console_print_color("\n\n", VGA_DEFAULT_ATTR);
-
-	print_tag("OK", "All systems ready. Launching shell...\n", VGA_GREEN);
+	console_print("\n");
+	boot_status("Reached target Multi-User System");
+	boot_delay();
 	console_print("\n");
 
 	shell_run();

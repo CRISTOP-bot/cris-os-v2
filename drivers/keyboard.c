@@ -71,8 +71,6 @@ static bool ctrl_state;
 static bool alt_state;
 static bool extended_code;
 
-static volatile int buf_head, buf_tail;
-
 static void layout_populate(void)
 {
 	for (int i = 0; i < 128; ++i) {
@@ -93,7 +91,39 @@ void keyboard_init(void)
 	alt_state = false;
 	extended_code = false;
 	current_layout = KB_LAYOUT_US;
-	buf_head = buf_tail = 0;
+
+	/* PS/2 controller initialization for real hardware */
+	/* Disable devices during initialization */
+	outb(0x64, 0xAD);
+	outb(0x64, 0xA7);
+
+	/* Flush output buffer */
+	while (inb(0x64) & 1)
+		(void)inb(0x60);
+
+	/* Self-test PS/2 controller */
+	outb(0x64, 0xAA);
+	(void)inb(0x60);
+
+	/* Enable keyboard */
+	outb(0x64, 0xAE);
+
+	/* Set keyboard to scan code set 1 */
+	outb(0x60, 0xF0);
+	(void)inb(0x60);
+	outb(0x60, 0x01);
+	(void)inb(0x60);
+
+	/* Set typematic rate (fastest) */
+	outb(0x60, 0xF3);
+	(void)inb(0x60);
+	outb(0x60, 0x00);
+	(void)inb(0x60);
+
+	/* Enable scanning */
+	outb(0x60, 0xF4);
+	(void)inb(0x60);
+
 	layout_populate();
 }
 
@@ -128,6 +158,16 @@ char keyboard_read_char(void)
                         continue;
 
                 sc = inb(0x60);
+
+                if (sc == 0xE0) {
+                        extended_code = true;
+                        continue;
+                }
+
+                if (extended_code) {
+                        extended_code = false;
+                        continue;
+                }
 
                 if (sc == 0x2A || sc == 0x36) { /* shift press */
                         shift_state = true;
@@ -209,7 +249,33 @@ int keyboard_get_layout(void)
 
 void keyboard_flush(void)
 {
-        buf_head = buf_tail = 0;
-        while (inb(0x64) & 1)
-                (void)inb(0x60);
+	while (inb(0x64) & 1)
+		(void)inb(0x60);
+}
+
+int keyboard_read_scancode(void)
+{
+	while (1) {
+		if (wait_keyboard_data() < 0)
+			continue;
+		unsigned char sc = inb(0x60);
+		if (sc == 0xE0) {
+			if (wait_keyboard_data() < 0)
+				continue;
+			unsigned char ext = inb(0x60);
+			if (!(ext & 0x80))
+				return ext | 0x100;
+			continue;
+		}
+		if (sc == 0x2A || sc == 0x36) { shift_state = true; continue; }
+		if (sc == 0xAA || sc == 0xB6) { shift_state = false; continue; }
+		if (sc == 0x1D) { ctrl_state = true; continue; }
+		if (sc == 0x9D) { ctrl_state = false; continue; }
+		if (sc == 0x38) { alt_state = true; continue; }
+		if (sc == 0xB8) { alt_state = false; continue; }
+		if (sc == 0x3A) { caps_lock = !caps_lock; continue; }
+		if (sc & 0x80)
+			continue;
+		return sc;
+	}
 }

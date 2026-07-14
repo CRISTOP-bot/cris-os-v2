@@ -5,18 +5,21 @@
 #include "timer.h"
 #include "mouse.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 struct idt_entry {
-	unsigned short base_low;
-	unsigned short sel;
-	unsigned char zero;
-	unsigned char flags;
-	unsigned short base_high;
+	uint16_t base_low;
+	uint16_t sel;
+	uint8_t  ist;
+	uint8_t  flags;
+	uint16_t base_mid;
+	uint32_t base_high;
+	uint32_t reserved;
 } __attribute__((packed));
 
 struct idt_pointer {
-	unsigned short limit;
-	unsigned int base;
+	uint16_t limit;
+	uint64_t base;
 } __attribute__((packed));
 
 typedef struct idt_entry idt_entry_t;
@@ -34,7 +37,6 @@ static void serial_print_debug(const char *s) {
 	while (*s) serial_out_debug(*s++);
 }
 
-/* Exception ISRs */
 void isr0(void);  void isr1(void);  void isr2(void);  void isr3(void);
 void isr4(void);  void isr5(void);  void isr6(void);  void isr7(void);
 void isr8(void);  void isr9(void);  void isr10(void); void isr11(void);
@@ -44,7 +46,6 @@ void isr20(void); void isr21(void); void isr22(void); void isr23(void);
 void isr24(void); void isr25(void); void isr26(void); void isr27(void);
 void isr28(void); void isr29(void); void isr30(void); void isr31(void);
 
-/* IRQ ISRs */
 void irq0(void);  void irq1(void);  void irq2(void);  void irq3(void);
 void irq4(void);  void irq5(void);  void irq6(void);  void irq7(void);
 void irq8(void);  void irq9(void);  void irq10(void); void irq11(void);
@@ -53,12 +54,14 @@ void irq12(void); void irq13(void); void irq14(void); void irq15(void);
 static void idt_set_entry(int num, void *handler,
 			  unsigned short sel, unsigned char flags)
 {
-	unsigned int base = (unsigned int)handler;
+	uint64_t base = (uint64_t)handler;
 	idt[num].base_low  = base & 0xFFFF;
 	idt[num].sel       = sel;
-	idt[num].zero      = 0;
+	idt[num].ist       = 0;
 	idt[num].flags     = flags;
-	idt[num].base_high = (base >> 16) & 0xFFFF;
+	idt[num].base_mid  = (base >> 16) & 0xFFFF;
+	idt[num].base_high = (uint32_t)(base >> 32);
+	idt[num].reserved  = 0;
 }
 
 static void *ex_handlers[] = {
@@ -109,16 +112,16 @@ static const char *exception_names[] = {
 };
 
 struct isr_regs {
-	unsigned int gs, fs, es, ds;
-	unsigned int edi, esi, ebp, old_esp, ebx, edx, ecx, eax;
-	unsigned int num, err;
+	uint64_t ds;
+	uint64_t r11, r10, r9, r8;
+	uint64_t rdi, rsi, rbp, rbx, rdx, rcx, rax;
+	uint64_t num, err;
 };
 
 void exception_handler(struct isr_regs *r)
 {
-	(void)r;
 	console_clear_color(0x4F);
-	console_print("=== CRITICAL EXCEPTION ===\n\n");
+	console_print_color("=== CRITICAL EXCEPTION ===\n\n", VGA_ATTR(VGA_WHITE, VGA_RED));
 	if (r->num < 32) {
 		console_print("Exception: ");
 		console_print(exception_names[r->num]);
@@ -126,7 +129,17 @@ void exception_handler(struct isr_regs *r)
 	} else {
 		console_print("Unknown interrupt\n");
 	}
-	console_print("The system has been halted.\n");
+	unsigned long regs[16];
+	regs[0] = r->rax;
+	regs[1] = r->rbx;
+	regs[2] = r->rcx;
+	regs[3] = r->rdx;
+	regs[4] = r->rsi;
+	regs[5] = r->rdi;
+	regs[6] = r->rbp;
+	regs[7] = 0;
+	kernel_panic_ex(exception_names[r->num], (unsigned int)r->num,
+			(unsigned int)r->err, (unsigned int *)regs);
 	halt_cpu();
 }
 
@@ -135,14 +148,12 @@ void irq_handler(struct isr_regs *r)
 	unsigned char irq = (unsigned char)(r->num - 32);
 
 	switch (irq) {
-	case 0:  /* PIT timer */
+	case 0:
 		timer_handler();
 		break;
-	case 1:  /* keyboard */
-		/* keyboard is polled, just ack */
-		(void)inb(0x60);
+	case 1:
 		break;
-	case 12: /* PS/2 mouse */
+	case 12:
 		mouse_handler();
 		break;
 	default:
@@ -165,22 +176,20 @@ void idt_init(void)
 	unsigned char flags = 0x8E;
 	serial_print_debug("setting exceptions\n");
 
-	for (int i = 0; i < 32; ++i) {
-		serial_out_debug('0' + (i % 10));
+	for (int i = 0; i < 32; ++i)
 		idt_set_entry(i, ex_handlers[i], code_sel, flags);
-	}
+
 	serial_print_debug(" exceptions done\n");
 
 	serial_print_debug(" setting irqs\n");
-	for (int i = 0; i < 16; ++i) {
-		serial_out_debug('A' + (i % 26));
+	for (int i = 0; i < 16; ++i)
 		idt_set_entry(32 + i, irq_handlers[i], code_sel, flags);
-	}
+
 	serial_print_debug(" irqs done\n");
 
 	idt_pointer_t idtp;
 	idtp.limit = (unsigned short)(sizeof(idt_entry_t) * 256 - 1);
-	idtp.base  = (unsigned int)&idt;
+	idtp.base  = (uint64_t)&idt;
 	serial_print_debug("loading idt\n");
 
 	__asm__ volatile("lidt %0" : : "m"(idtp));

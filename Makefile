@@ -14,11 +14,11 @@ PYTHON    ?= python
 
 KERNEL = $(BUILD_DIR)/kernel.bin
 ROOTFS = $(ISO_DIR)/boot/rootfs.bin
-QEMU   = qemu-system-i386
+QEMU   = qemu-system-x86_64
 
-CFLAGS  = -ffreestanding -O2 -Wall -Wextra -m32 -nostdlib -std=c99 -I src -fno-stack-protector -mno-sse -mno-sse2 -mno-mmx -mno-3dnow -fno-strict-aliasing
-ASFLAGS = -m32 -ffreestanding
-LDFLAGS = -m elf_i386 -nostdlib
+CFLAGS  = -ffreestanding -O2 -Wall -Wextra -m64 -nostdlib -std=c99 -I src -fno-stack-protector -mno-sse -mno-sse2 -mno-mmx -mno-3dnow -fno-strict-aliasing -mno-red-zone -mcmodel=kernel -fno-pic -fno-pie
+ASFLAGS = -m64 -ffreestanding
+LDFLAGS = -m elf_x86_64 -nostdlib
 
 SRC_DIR  = src
 DRV_DIR  = drivers
@@ -31,12 +31,23 @@ SRCS  = $(SRC_DIR)/kernel.c \
         $(SRC_DIR)/vfs.c \
         $(SRC_DIR)/shell.c \
         $(SRC_DIR)/boot.c \
-        $(SRC_DIR)/systemd.c \
+        $(SRC_DIR)/openrc.c \
         $(SRC_DIR)/lcp.c \
         $(SRC_DIR)/gui.c \
         $(SRC_DIR)/memory.c \
         $(SRC_DIR)/calc.c \
-        $(SRC_DIR)/calc_app.c
+        $(SRC_DIR)/calc_app.c \
+        $(SRC_DIR)/pci.c \
+        $(SRC_DIR)/games.c \
+        $(SRC_DIR)/pmm.c \
+        $(SRC_DIR)/vmm.c \
+        $(SRC_DIR)/apps.c \
+        $(SRC_DIR)/app_nano.c \
+        $(SRC_DIR)/app_hexview.c \
+        $(SRC_DIR)/app_sysinfo.c \
+        $(SRC_DIR)/app_filemanager.c \
+        $(SRC_DIR)/app_htop.c \
+        $(SRC_DIR)/app_calc.c
 
 DRV_SRCS = $(DRV_DIR)/console.c \
            $(DRV_DIR)/keyboard.c \

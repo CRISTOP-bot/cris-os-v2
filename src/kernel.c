@@ -5,7 +5,7 @@
 #include "shell.h"
 #include "keyboard.h"
 #include "lcp.h"
-#include "systemd.h"
+#include "openrc.h"
 #include "boot.h"
 #include "idt.h"
 #include "gdt.h"
@@ -13,27 +13,31 @@
 #include "timer.h"
 #include "mouse.h"
 #include "kstring.h"
-#include "asm.h"
+#include "pci.h"
+#include "pmm.h"
+#include "vmm.h"
+#include "memory.h"
 #include <stdbool.h>
+#include <stdint.h>
 
-unsigned long sys_mem_lower;
-unsigned long sys_mem_upper;
+uint32_t sys_mem_lower;
+uint32_t sys_mem_upper;
 
 struct multiboot_info {
-	unsigned long flags;
-	unsigned long mem_lower;
-	unsigned long mem_upper;
-	unsigned long boot_device;
-	unsigned long cmdline;
-	unsigned long mods_count;
-	unsigned long mods_addr;
+	uint32_t flags;
+	uint32_t mem_lower;
+	uint32_t mem_upper;
+	uint32_t boot_device;
+	uint32_t cmdline;
+	uint32_t mods_count;
+	uint32_t mods_addr;
 };
 
 struct multiboot_module {
-	unsigned long mod_start;
-	unsigned long mod_end;
-	unsigned long cmdline;
-	unsigned long reserved;
+	uint32_t mod_start;
+	uint32_t mod_end;
+	uint32_t cmdline;
+	uint32_t reserved;
 };
 
 static void boot_status(const char *msg)
@@ -66,14 +70,14 @@ static void boot_delay(void)
 static void print_banner(void)
 {
 	console_print_color("\n", VGA_DEFAULT_ATTR);
-	console_print_color("          ██████  ██████  ██ ███████  ██████  ███████ \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-	console_print_color("         ██      ██    ██ ██ ██      ██    ██ ██      \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-	console_print_color("         ██      ██    ██ ██ ███████ ██    ██ ███████ \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-	console_print_color("         ██      ██    ██ ██      ██ ██    ██      ██ \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-	console_print_color("          ██████  ██████  ██ ███████  ██████  ███████ \n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-	console_print_color("                     Operating System v3\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	console_print_color("    _   _       _                        ___  ____  \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("   | \\ | | ___ | |_ ___  ___  _ __     / _ \\/ ___| \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("   |  \\| |/ _ \\| __/ _ \\/ __|| '_ \\   | | | \\___ \\ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("   | |\\  | (_) | || (_) \\__ \\| | | |  | |_| |___) |\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("   |_| \\_|\\___/ \\__\\___/|___/|_| |_|   \\___/|____/ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("             ~ Open Source Operating System ~\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
 	console_print("\n");
-	boot_info("Booting CrisOS v3 i386...\n");
+	boot_info("Booting NucleOS v3 x86_64...\n");
 	boot_delay();
 }
 
@@ -95,7 +99,30 @@ void kmain(unsigned long mbi_addr)
 	pic_init();
 	boot_status("Initialized PIC");
 	boot_delay();
-	pic_mask(0xFD, 0xFF);
+	pic_mask(0xF9, 0xFF);
+
+	if (mbi_addr) {
+		struct multiboot_info *mbi = (struct multiboot_info *)mbi_addr;
+		if (mbi->flags & 0x1) {
+			sys_mem_lower = mbi->mem_lower;
+			sys_mem_upper = mbi->mem_upper;
+		}
+	}
+
+	pmm_init(sys_mem_lower, sys_mem_upper);
+	boot_status("Initialized Physical Memory Manager");
+	boot_delay();
+
+	vmm_init(sys_mem_lower, sys_mem_upper);
+	boot_status("Initialized Virtual Memory Manager");
+	boot_delay();
+
+	memory_init();
+	boot_status("Initialized Heap Allocator");
+	boot_delay();
+
+	pci_init();
+	boot_delay();
 
 	timer_init(100);
 	boot_status("Started PIT");
@@ -106,7 +133,7 @@ void kmain(unsigned long mbi_addr)
 	boot_delay();
 
 	mouse_init();
-	pic_mask(0xFA, 0xEF);
+	pic_mask(0xF9, 0xEF);
 	boot_status("Initialized Mouse");
 
 	bool rootfs_loaded = false;
@@ -114,11 +141,6 @@ void kmain(unsigned long mbi_addr)
 
 	if (mbi_addr) {
 		struct multiboot_info *mbi = (struct multiboot_info *)mbi_addr;
-
-		if (mbi->flags & 0x1) {
-			sys_mem_lower = mbi->mem_lower;
-			sys_mem_upper = mbi->mem_upper;
-		}
 
 		if (mbi->flags & 0x8) {
 			boot_info("Detected Multiboot modules\n");
@@ -159,8 +181,8 @@ void kmain(unsigned long mbi_addr)
 	boot_status("Started Boot Manager");
 	boot_delay();
 
-	systemd_init();
-	boot_status("Started Service Manager");
+	openrc_init();
+	boot_status("Started Service Manager (OpenRC)");
 	boot_delay();
 
 	lcp_init();

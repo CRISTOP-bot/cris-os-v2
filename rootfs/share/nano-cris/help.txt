@@ -1,1 +1,0 @@
-nano-cris help text for CrisOS.

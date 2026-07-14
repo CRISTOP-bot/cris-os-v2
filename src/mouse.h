@@ -1,5 +1,5 @@
-#ifndef CRISOS_MOUSE_H
-#define CRISOS_MOUSE_H
+#ifndef NUCLEOS_MOUSE_H
+#define NUCLEOS_MOUSE_H
 
 #include <stdbool.h>
 
@@ -17,6 +17,8 @@ void mouse_get_state(struct mouse_state *state);
 void mouse_render(void);
 void mouse_hide(void);
 bool mouse_clicked(unsigned char btn);
+bool mouse_doubleclicked(void);
 bool mouse_get_click(int *x, int *y);
+int mouse_get_scroll(void);
 
 #endif

@@ -3,39 +3,28 @@
 .global sub_asm
 .type sub_asm, @function
 sub_asm:
-    push %ebp
-    mov %esp, %ebp
-    movl 8(%ebp), %eax
-    subl 12(%ebp), %eax
-    pop %ebp
+    mov %edi, %eax
+    sub %esi, %eax
     ret
 
 .global mul_asm
 .type mul_asm, @function
 mul_asm:
-    push %ebp
-    mov %esp, %ebp
-    movl 8(%ebp), %eax
-    imull 12(%ebp), %eax
-    pop %ebp
+    mov %edi, %eax
+    imull %esi, %eax
     ret
 
 .global div_asm
 .type div_asm, @function
 div_asm:
-    push %ebp
-    mov %esp, %ebp
-    movl 8(%ebp), %eax
-    movl 12(%ebp), %ecx
-    testl %ecx, %ecx
+    mov %edi, %eax
+    testl %esi, %esi
     jnz .Ldiv_ok
     xorl %eax, %eax
-    jmp .Ldiv_end
+    ret
 .Ldiv_ok:
-    cdq
-    idivl %ecx
-.Ldiv_end:
-    pop %ebp
+    cltd
+    idivl %esi
     ret
 
 .global sti
@@ -59,71 +48,71 @@ reboot_cpu:
     movb $0xFE, %al
     outb %al, %dx
 1:  jmp 1b
-    ret
 
 .global inb
 .type inb, @function
 inb:
-    push %ebp
-    mov %esp, %ebp
-    movw 8(%ebp), %dx
+    movw %di, %dx
     inb %dx, %al
     movzbl %al, %eax
-    pop %ebp
     ret
 
 .global outb
 .type outb, @function
 outb:
-    push %ebp
-    mov %esp, %ebp
-    movw 8(%ebp), %dx
-    movb 12(%ebp), %al
+    movw %di, %dx
+    movb %sil, %al
     outb %al, %dx
-    pop %ebp
+    ret
+
+.global inl
+.type inl, @function
+inl:
+    movw %di, %dx
+    inl %dx, %eax
+    ret
+
+.global outl
+.type outl, @function
+outl:
+    movw %di, %dx
+    movl %esi, %eax
+    outl %eax, %dx
     ret
 
 .global console_putxy
 .type console_putxy, @function
 console_putxy:
-    push %ebp
-    mov %esp, %ebp
-    movl 8(%ebp), %eax
-    movl 12(%ebp), %ebx
-    movzbl 16(%ebp), %ecx
-    movzbl 20(%ebp), %edx
-    movw %bx, %bx
-    movzwl %bx, %ebx
-    imull $80, %ebx
-    addl %eax, %ebx
-    shll $1, %ebx
-    movb %cl, %al
-    movb %dl, %ah
-    movl $0xB8000, %edi
-    addl %ebx, %edi
-    movw %ax, (%edi)
-    pop %ebp
+    cmpl $80, %edi
+    jnb .Lputxy_ret
+    cmpl $25, %esi
+    jnb .Lputxy_ret
+    movq $0xB8000, %r8
+    imull $80, %esi, %eax
+    addl %edi, %eax
+    shlq $1, %rax
+    addq %rax, %r8
+    movb %dl, %al
+    movb %cl, %ah
+    movw %ax, (%r8)
+.Lputxy_ret:
     ret
 
 .global memsetw_asm
 .type memsetw_asm, @function
 memsetw_asm:
-    push %ebp
-    mov %esp, %ebp
-    movl 8(%ebp), %edi
-    movw 12(%ebp), %ax
-    movl 16(%ebp), %ecx
+    movq %rsi, %rax
+    movl %edx, %ecx
     cld
     rep stosw
-    pop %ebp
     ret
 
 .macro isr_no_err num
 .global isr\num
 .type isr\num, @function
 isr\num:
-    push $0
-    push $\num
+    pushq $0
+    pushq $\num
     jmp isr_common_stub
 .endm
 
@@ -131,7 +120,7 @@ isr\num:
 .global isr\num
 .type isr\num, @function
 isr\num:
-    push $\num
+    pushq $\num
     jmp isr_common_stub
 .endm
 
@@ -169,59 +158,69 @@ isr_err    30
 isr_no_err 31
 
 isr_common_stub:
-    pusha
-    push %ds
-    push %es
-    push %fs
-    push %gs
-    mov $0x10, %ax
-    mov %ax, %ds
-    mov %ax, %es
-    mov %ax, %fs
-    mov %ax, %gs
-    mov %esp, %eax
-    push %eax
+    pushq %rax
+    pushq %rcx
+    pushq %rdx
+    pushq %rbx
+    pushq %rbp
+    pushq %rsi
+    pushq %rdi
+    pushq %r8
+    pushq %r9
+    pushq %r10
+    pushq %r11
+    movq %ds, %rax
+    pushq %rax
+    movq $0x10, %rax
+    movq %rax, %ds
+    movq %rax, %es
+    movq %rsp, %rdi
     call exception_handler
-    add $4, %esp
-    pop %gs
-    pop %fs
-    pop %es
-    pop %ds
-    popa
-    add $8, %esp
-    iret
+    popq %rax
+    movq %rax, %ds
+    movq %rax, %es
+    popq %r11
+    popq %r10
+    popq %r9
+    popq %r8
+    popq %rdi
+    popq %rsi
+    popq %rbp
+    popq %rbx
+    popq %rdx
+    popq %rcx
+    popq %rax
+    addq $16, %rsp
+    iretq
 
 .global cpuid
 .type cpuid, @function
 cpuid:
-    push %ebp
-    mov %esp, %ebp
-    push %ebx
-    push %edi
-    mov 8(%ebp), %eax
-    mov 12(%ebp), %edi
+    pushq %rbx
+    movl %edi, %eax
+    movq %rsi, %rdi
     cpuid
-    mov %eax, 0(%edi)
-    mov %ebx, 4(%edi)
-    mov %ecx, 8(%edi)
-    mov %edx, 12(%edi)
-    pop %edi
-    pop %ebx
-    pop %ebp
+    movl %eax, 0(%rdi)
+    movl %ebx, 4(%rdi)
+    movl %ecx, 8(%rdi)
+    movl %edx, 12(%rdi)
+    popq %rbx
     ret
 
 .global gdt_load
 .type gdt_load, @function
 gdt_load:
-    movl 4(%esp), %eax
-    lgdt (%eax)
+    lgdt (%rdi)
     movw $0x10, %ax
     movw %ax, %ds
     movw %ax, %es
     movw %ax, %fs
     movw %ax, %gs
     movw %ax, %ss
-    ljmp $0x08, $gdt_flush
+    pushq $0x08
+    lea gdt_flush(%rip), %rax
+    pushq %rax
+    lretq
 gdt_flush:
     ret
 
@@ -229,8 +228,8 @@ gdt_flush:
 .global irq\num
 .type irq\num, @function
 irq\num:
-    push $0
-    push $\num
+    pushq $0
+    pushq $\num
     jmp irq_common_stub
 .endm
 
@@ -252,24 +251,37 @@ irq_def 14
 irq_def 15
 
 irq_common_stub:
-    pusha
-    push %ds
-    push %es
-    push %fs
-    push %gs
-    mov $0x10, %ax
-    mov %ax, %ds
-    mov %ax, %es
-    mov %ax, %fs
-    mov %ax, %gs
-    mov %esp, %eax
-    push %eax
+    pushq %rax
+    pushq %rcx
+    pushq %rdx
+    pushq %rbx
+    pushq %rbp
+    pushq %rsi
+    pushq %rdi
+    pushq %r8
+    pushq %r9
+    pushq %r10
+    pushq %r11
+    movq %ds, %rax
+    pushq %rax
+    movq $0x10, %rax
+    movq %rax, %ds
+    movq %rax, %es
+    movq %rsp, %rdi
     call irq_handler
-    add $4, %esp
-    pop %gs
-    pop %fs
-    pop %es
-    pop %ds
-    popa
-    add $8, %esp
-    iret
+    popq %rax
+    movq %rax, %ds
+    movq %rax, %es
+    popq %r11
+    popq %r10
+    popq %r9
+    popq %r8
+    popq %rdi
+    popq %rsi
+    popq %rbp
+    popq %rbx
+    popq %rdx
+    popq %rcx
+    popq %rax
+    addq $16, %rsp
+    iretq

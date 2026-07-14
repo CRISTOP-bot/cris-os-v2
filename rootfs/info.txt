@@ -1,4 +1,4 @@
-CrisOS v3.0.0 rootfs
+NucleOS v3.0.0 rootfs
 Architecture: i386
-Kernel: CrisOS v3
-Filesystem: CRFS (Cris Root File System)
+Kernel: NucleOS v3
+Filesystem: NRFS (NucleOS Root File System)

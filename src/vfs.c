@@ -441,8 +441,10 @@ bool vfs_cp(const char *src, const char *dst)
 	if (child < 0)
 		return false;
 	char *storage = vfs_alloc_data(nodes[node].data, nodes[node].size);
-	if (!storage)
+	if (!storage) {
+		vfs_remove_node(child);
 		return false;
+	}
 	nodes[child].data = storage;
 	nodes[child].size = nodes[node].size;
 	nodes[child].own_data = storage;
@@ -480,6 +482,8 @@ bool vfs_mv(const char *src, const char *dst)
 bool vfs_write(const char *path, const char *content, size_t length)
 {
 	int node = vfs_resolve(path);
+	if (node >= 0 && nodes[node].read_only)
+		return false;
 	if (node < 0) {
 		node = vfs_create_node(path, false);
 		if (node < 0)
@@ -516,4 +520,65 @@ size_t vfs_get_size(const char *path)
 bool vfs_exists(const char *path)
 {
 	return vfs_resolve(path) >= 0;
+}
+
+bool vfs_is_dir(const char *path)
+{
+	int node = vfs_resolve(path);
+	if (node < 0)
+		return false;
+	return nodes[node].is_dir;
+}
+
+int vfs_get_children(const char *path, const char **names, int max_names)
+{
+	int node = vfs_resolve(path);
+	if (node < 0 || !nodes[node].is_dir)
+		return 0;
+	int count = 0;
+	for (int i = 0; i < nodes[node].child_count && count < max_names; ++i) {
+		int child = nodes[node].children[i];
+		if (child >= 0) {
+			names[count] = nodes[child].name;
+			count++;
+		}
+	}
+	return count;
+}
+
+int vfs_get_file_count(const char *path)
+{
+	int node = vfs_resolve(path);
+	if (node < 0)
+		return 0;
+	return nodes[node].child_count;
+}
+
+bool vfs_stat(const char *path)
+{
+	int node = vfs_resolve(path);
+	if (node < 0)
+		return false;
+	console_print("Name:   ");
+	console_print(nodes[node].name);
+	console_print("\nType:   ");
+	if (nodes[node].is_dir) {
+		console_print_color("directory\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	} else if (nodes[node].read_only) {
+		console_print_color("read-only file\n", VGA_ATTR(VGA_YELLOW, VGA_BLACK));
+	} else {
+		console_print_color("file\n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+	}
+	console_print("Size:   ");
+	char buf[16];
+	kitoa(nodes[node].size, buf, sizeof(buf));
+	console_print(buf);
+	console_print(" bytes\n");
+	if (nodes[node].is_dir) {
+		console_print("Children: ");
+		kitoa(nodes[node].child_count, buf, sizeof(buf));
+		console_print(buf);
+		console_print("\n");
+	}
+	return true;
 }

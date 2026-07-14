@@ -1,4 +1,4 @@
-CrisOS v3 rootfs
+NucleOS v3 rootfs
 
 Standard Linux directory layout:
   /bin     - System binaries
@@ -13,7 +13,7 @@ Standard Linux directory layout:
   /share   - Shared data
   /srv     - Service data
   /sys     - System information (virtual)
-  /systemd - System services
+  /openrc  - Service scripts (OpenRC)
   /tmp     - Temporary files
   /usr     - User system resources
   /var     - Variable data

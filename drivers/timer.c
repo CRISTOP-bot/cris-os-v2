@@ -34,7 +34,7 @@ void timer_handler(void)
 
 void timer_sleep(unsigned long ticks)
 {
-	unsigned long target = timer_ticks + ticks;
-	while (timer_ticks < target)
+	unsigned long start = timer_ticks;
+	while (timer_ticks - start < ticks)
 		__asm__ volatile("hlt");
 }

@@ -1,30 +1,30 @@
-name:nano-cris
-version:1.0.0
-description:Editor de texto simple para CrisOS
-arch:i386
-maintainer:Cristopher
-license:MIT
-dependencies:libc,termcap
-files:bin/nano-cris,share/nano-cris/help.txt
-size:32000
-repo:main
----
 name:editor-lite
 version:0.5.0
-description:Editor de texto ligero para CrisOS
-arch:i386
-maintainer:CrisOS Team
+description:Editor de texto ligero para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
 license:MIT
 dependencies:
 files:bin/editor-lite
 size:12500
 repo:main
 ---
+name:nano
+version:1.0.0
+description:Editor de texto simple para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:libc,termcap
+files:bin/nano,share/nano/help.txt
+size:32000
+repo:main
+---
 name:textpad
 version:0.9.1
-description:Editor de texto basado en terminal para CrisOS
-arch:i386
-maintainer:CrisOS Team
+description:Editor de texto basado en terminal para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
 license:Apache-2.0
 dependencies:libc
 files:bin/textpad
@@ -33,9 +33,9 @@ repo:main
 ---
 name:libc
 version:1.0.0
-description:Biblioteca estándar mínima para CrisOS
-arch:i386
-maintainer:CrisOS Team
+description:Biblioteca estandar minima para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
 license:MIT
 dependencies:
 files:lib/libc.so
@@ -44,11 +44,275 @@ repo:main
 ---
 name:termcap
 version:1.2.3
-description:Biblioteca de compatibilidad con terminal para CrisOS
-arch:i386
-maintainer:CrisOS Team
+description:Biblioteca de compatibilidad con terminal para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
 license:BSD-2-Clause
 dependencies:
 files:lib/termcap.so
 size:18000
 repo:main
+---
+name:snake-game
+version:1.0.0
+description:Juego clasico de Snake para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:games/snake-game
+size:8200
+repo:games
+---
+name:tetris-game
+version:1.0.0
+description:Juego clasico de Tetris para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:games/tetris-game
+size:11500
+repo:games
+---
+name:pong-game
+version:1.0.0
+description:Juego clasico de Pong con CPU para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:games/pong-game
+size:7800
+repo:games
+---
+name:2048-game
+version:1.0.0
+description:Juego puzzle 2048 para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:games/2048-game
+size:9400
+repo:games
+---
+name:ttt-game
+version:1.0.0
+description:Tic-Tac-Toe con IA minimax para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:games/ttt-game
+size:6200
+repo:games
+---
+name:minesweeper
+version:1.0.0
+description:Juego Minesweeper clasico para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:games/minesweeper
+size:8900
+repo:games
+---
+name:breakout
+version:1.0.0
+description:Juego Breakout con bloques y pelota para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:games/breakout
+size:10200
+repo:games
+---
+name:memory-game
+version:1.0.0
+description:Juego de memoria con cartas para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:games/memory-game
+size:7100
+repo:games
+---
+name:calc-app
+version:2.0.0
+description:Calculadora de expresiones para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:bin/calc-app
+size:4500
+repo:tools
+---
+name:hexview
+version:1.0.0
+description:Visor hexadecimal de archivos para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:bin/hexview
+size:3200
+repo:tools
+---
+name:sysinfo
+version:1.0.0
+description:Herramienta de informacion del sistema para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:bin/sysinfo
+size:5100
+repo:tools
+---
+name:filemanager
+version:0.8.0
+description:Gestor de archivos basado en terminal para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:libc
+files:bin/filemanager
+size:8700
+repo:tools
+---
+name:htop-lite
+version:0.3.0
+description:Monitor de procesos y memoria para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:GPL-2.0
+dependencies:
+files:bin/htop-lite
+size:6300
+repo:tools
+---
+name:gpu-driver
+version:0.1.0
+description:Driver basico de VGA para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:drivers/vga-driver.so
+size:24000
+repo:drivers
+---
+name:net-driver
+version:0.1.0
+description:Driver de red RTL8139 para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:drivers/rtl8139.so
+size:31000
+repo:drivers
+---
+name:input-driver
+version:1.0.0
+description:Driver de entrada PS/2 para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:
+files:drivers/ps2-input.so
+size:9500
+repo:drivers
+---
+name:libc-dev
+version:1.0.0
+description:Archivos de desarrollo de libc para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:libc
+files:include/stdio.h,include/stdlib.h,include/string.h
+size:12000
+repo:dev
+---
+name:gcc-nucleos
+version:4.9.0
+description:Compilador GCC para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:GPL-3.0
+dependencies:libc
+files:bin/gcc,libexec/gcc/nucleos/4.9/cc1
+size:256000
+repo:dev
+---
+name:make-nucleos
+version:4.2.1
+description:GNU Make para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:GPL-3.0
+dependencies:
+files:bin/make
+size:42000
+repo:dev
+---
+name:binutils-nucleos
+version:2.30
+description:GNU Binutils (as, ld, objdump) para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:GPL-3.0
+dependencies:
+files:bin/as,bin/ld,bin/objdump
+size:89000
+repo:dev
+---
+name:bash-nucleos
+version:5.1.0
+description:Bash shell para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:GPL-3.0
+dependencies:libc,termcap
+files:bin/bash
+size:120000
+repo:extra
+---
+name:python-nucleos
+version:3.9.0
+description:Python 3 interprete para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:PSF
+dependencies:libc
+files:bin/python3,lib/python3.9/
+size:512000
+repo:extra
+---
+name:wget-nucleos
+version:1.21.0
+description:Descargador de archivos HTTP para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:GPL-3.0
+dependencies:libc
+files:bin/wget
+size:28000
+repo:extra
+---
+name:curl-nucleos
+version:7.80.0
+description:Cliente URL multiprotocolo para NucleOS
+arch:x86_64
+maintainer:NucleOS Team
+license:MIT
+dependencies:libc
+files:bin/curl
+size:35000
+repo:extra

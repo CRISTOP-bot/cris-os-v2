@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define MAX_PACKAGES 16
+#define MAX_PACKAGES 32
 #define MAX_DEPENDENCIES 8
 #define MAX_FILES 8
 #define REPO_BUFFER_SIZE 8192
@@ -181,22 +181,22 @@ static bool lcp_parse_repo(const char *data, size_t size)
 }
 
 static const char default_repo_data[] =
-	"name:nano-cris\n"
+	"name:nano-nucleos\n"
 	"version:1.0.0\n"
-	"description:Editor de texto simple para CrisOS\n"
-	"arch:i386\n"
-	"maintainer:Cristopher\n"
+	"description:Editor de texto simple para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
 	"license:MIT\n"
 	"dependencies:libc,termcap\n"
-	"files:bin/nano-cris,share/nano-cris/help.txt\n"
+	"files:bin/nano-nucleos,share/nano-nucleos/help.txt\n"
 	"size:32000\n"
 	"repo:main\n"
 	"---\n"
 	"name:editor-lite\n"
 	"version:0.5.0\n"
-	"description:Editor de texto ligero para CrisOS\n"
-	"arch:i386\n"
-	"maintainer:CrisOS Team\n"
+	"description:Editor de texto ligero para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
 	"license:MIT\n"
 	"dependencies:\n"
 	"files:bin/editor-lite\n"
@@ -205,9 +205,9 @@ static const char default_repo_data[] =
 	"---\n"
 	"name:textpad\n"
 	"version:0.9.1\n"
-	"description:Editor de texto basado en terminal para CrisOS\n"
-	"arch:i386\n"
-	"maintainer:CrisOS Team\n"
+	"description:Editor de texto basado en terminal para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
 	"license:Apache-2.0\n"
 	"dependencies:libc\n"
 	"files:bin/textpad\n"
@@ -216,9 +216,9 @@ static const char default_repo_data[] =
 	"---\n"
 	"name:libc\n"
 	"version:1.0.0\n"
-	"description:Biblioteca estandar minima para CrisOS\n"
-	"arch:i386\n"
-	"maintainer:CrisOS Team\n"
+	"description:Biblioteca estandar minima para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
 	"license:MIT\n"
 	"dependencies:\n"
 	"files:lib/libc.so\n"
@@ -227,14 +227,278 @@ static const char default_repo_data[] =
 	"---\n"
 	"name:termcap\n"
 	"version:1.2.3\n"
-	"description:Biblioteca de compatibilidad con terminal para CrisOS\n"
-	"arch:i386\n"
-	"maintainer:CrisOS Team\n"
+	"description:Biblioteca de compatibilidad con terminal para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
 	"license:BSD-2-Clause\n"
 	"dependencies:\n"
 	"files:lib/termcap.so\n"
 	"size:18000\n"
-	"repo:main\n";
+	"repo:main\n"
+	"---\n"
+	"name:snake-game\n"
+	"version:1.0.0\n"
+	"description:Juego clasico de Snake para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:games/snake-game\n"
+	"size:8200\n"
+	"repo:games\n"
+	"---\n"
+	"name:tetris-game\n"
+	"version:1.0.0\n"
+	"description:Juego clasico de Tetris para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:games/tetris-game\n"
+	"size:11500\n"
+	"repo:games\n"
+	"---\n"
+	"name:pong-game\n"
+	"version:1.0.0\n"
+	"description:Juego clasico de Pong con CPU para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:games/pong-game\n"
+	"size:7800\n"
+	"repo:games\n"
+	"---\n"
+	"name:2048-game\n"
+	"version:1.0.0\n"
+	"description:Juego puzzle 2048 para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:games/2048-game\n"
+	"size:9400\n"
+	"repo:games\n"
+	"---\n"
+	"name:ttt-game\n"
+	"version:1.0.0\n"
+	"description:Tic-Tac-Toe con IA minimax para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:games/ttt-game\n"
+	"size:6200\n"
+	"repo:games\n"
+	"---\n"
+	"name:minesweeper\n"
+	"version:1.0.0\n"
+	"description:Juego Minesweeper clasico para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:games/minesweeper\n"
+	"size:8900\n"
+	"repo:games\n"
+	"---\n"
+	"name:breakout\n"
+	"version:1.0.0\n"
+	"description:Juego Breakout con bloques y pelota para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:games/breakout\n"
+	"size:10200\n"
+	"repo:games\n"
+	"---\n"
+	"name:memory-game\n"
+	"version:1.0.0\n"
+	"description:Juego de memoria con cartas para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:games/memory-game\n"
+	"size:7100\n"
+	"repo:games\n"
+	"---\n"
+	"name:calc-app\n"
+	"version:2.0.0\n"
+	"description:Calculadora de expresiones para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:bin/calc-app\n"
+	"size:4500\n"
+	"repo:tools\n"
+	"---\n"
+	"name:hexview\n"
+	"version:1.0.0\n"
+	"description:Visor hexadecimal de archivos para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:bin/hexview\n"
+	"size:3200\n"
+	"repo:tools\n"
+	"---\n"
+	"name:sysinfo\n"
+	"version:1.0.0\n"
+	"description:Herramienta de informacion del sistema para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:bin/sysinfo\n"
+	"size:5100\n"
+	"repo:tools\n"
+	"---\n"
+	"name:filemanager\n"
+	"version:0.8.0\n"
+	"description:Gestor de archivos basado en terminal para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:libc\n"
+	"files:bin/filemanager\n"
+	"size:8700\n"
+	"repo:tools\n"
+	"---\n"
+	"name:htop-lite\n"
+	"version:0.3.0\n"
+	"description:Monitor de procesos y memoria para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:GPL-2.0\n"
+	"dependencies:\n"
+	"files:bin/htop-lite\n"
+	"size:6300\n"
+	"repo:tools\n"
+	"---\n"
+	"name:gpu-driver\n"
+	"version:0.1.0\n"
+	"description:Driver basico de VGA para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:drivers/vga-driver.so\n"
+	"size:24000\n"
+	"repo:drivers\n"
+	"---\n"
+	"name:net-driver\n"
+	"version:0.1.0\n"
+	"description:Driver de red RTL8139 para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:drivers/rtl8139.so\n"
+	"size:31000\n"
+	"repo:drivers\n"
+	"---\n"
+	"name:input-driver\n"
+	"version:1.0.0\n"
+	"description:Driver de entrada PS/2 para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:\n"
+	"files:drivers/ps2-input.so\n"
+	"size:9500\n"
+	"repo:drivers\n"
+	"---\n"
+	"name:libc-dev\n"
+	"version:1.0.0\n"
+	"description:Archivos de desarrollo de libc para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:libc\n"
+	"files:include/stdio.h,include/stdlib.h,include/string.h\n"
+	"size:12000\n"
+	"repo:dev\n"
+	"---\n"
+	"name:gcc-nucleos\n"
+	"version:4.9.0\n"
+	"description:Compilador GCC para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:GPL-3.0\n"
+	"dependencies:libc\n"
+	"files:bin/gcc,libexec/gcc/nucleos/4.9/cc1\n"
+	"size:256000\n"
+	"repo:dev\n"
+	"---\n"
+	"name:make-nucleos\n"
+	"version:4.2.1\n"
+	"description:GNU Make para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:GPL-3.0\n"
+	"dependencies:\n"
+	"files:bin/make\n"
+	"size:42000\n"
+	"repo:dev\n"
+	"---\n"
+	"name:binutils-nucleos\n"
+	"version:2.30\n"
+	"description:GNU Binutils (as, ld, objdump) para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:GPL-3.0\n"
+	"dependencies:\n"
+	"files:bin/as,bin/ld,bin/objdump\n"
+	"size:89000\n"
+	"repo:dev\n"
+	"---\n"
+	"name:bash-nucleos\n"
+	"version:5.1.0\n"
+	"description:Bash shell para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:GPL-3.0\n"
+	"dependencies:libc,termcap\n"
+	"files:bin/bash\n"
+	"size:120000\n"
+	"repo:extra\n"
+	"---\n"
+	"name:python-nucleos\n"
+	"version:3.9.0\n"
+	"description:Python 3 interprete para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:PSF\n"
+	"dependencies:libc\n"
+	"files:bin/python3,lib/python3.9/\n"
+	"size:512000\n"
+	"repo:extra\n"
+	"---\n"
+	"name:wget-nucleos\n"
+	"version:1.21.0\n"
+	"description:Descargador de archivos HTTP para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:GPL-3.0\n"
+	"dependencies:libc\n"
+	"files:bin/wget\n"
+	"size:28000\n"
+	"repo:extra\n"
+	"---\n"
+	"name:curl-nucleos\n"
+	"version:7.80.0\n"
+	"description:Cliente URL multiprotocolo para NucleOS\n"
+	"arch:x86_64\n"
+	"maintainer:NucleOS Team\n"
+	"license:MIT\n"
+	"dependencies:libc\n"
+	"files:bin/curl\n"
+	"size:35000\n"
+	"repo:extra\n";
 
 bool lcp_init(void)
 {
@@ -286,14 +550,10 @@ static bool lcp_contains(const char *text, const char *term)
 static void lcp_print_line(const char *label, const char *value)
 {
 	char buffer[256];
-	size_t pos = 0;
-	const char *p = label;
-	while (*p && pos + 1 < sizeof(buffer))
-		buffer[pos++] = *p++;
-	p = value ? value : "";
-	while (*p && pos + 1 < sizeof(buffer))
-		buffer[pos++] = *p++;
-	buffer[pos] = '\0';
+	buffer[0] = '\0';
+	kstrcpy(buffer, label, sizeof(buffer));
+	if (value)
+		kstrcat(buffer, value, sizeof(buffer));
 	console_print(buffer);
 	console_print("\n");
 }
@@ -303,21 +563,24 @@ static void lcp_format_number(unsigned int value, char *out, size_t max_len)
 	if (max_len == 0)
 		return;
 	if (value == 0) {
-		out[0] = '0';
-		out[1] = '\0';
+		if (max_len >= 2) {
+			out[0] = '0';
+			out[1] = '\0';
+		} else {
+			out[0] = '\0';
+		}
 		return;
 	}
-	int pos = 0;
-	while (value > 0 && pos + 1 < (int)max_len) {
-		out[pos++] = '0' + (value % 10);
+	char rev[16];
+	int rp = 0;
+	while (value > 0 && rp < (int)sizeof(rev)) {
+		rev[rp++] = '0' + (value % 10);
 		value /= 10;
 	}
+	int pos = 0;
+	while (rp > 0 && pos + 1 < (int)max_len)
+		out[pos++] = rev[--rp];
 	out[pos] = '\0';
-	for (int i = 0; i < pos / 2; ++i) {
-		char swap = out[i];
-		out[i] = out[pos - 1 - i];
-		out[pos - 1 - i] = swap;
-	}
 }
 
 static void lcp_print_package_info(const lcp_package_t *pkg)
@@ -328,38 +591,21 @@ static void lcp_print_package_info(const lcp_package_t *pkg)
 	char number[32];
 	lcp_format_number(pkg->size, number, sizeof(number));
 	char size_line[64];
-	size_t pos = 0;
-	const char *label = "size: ";
-	const char *p = label;
-	while (*p && pos + 1 < sizeof(size_line))
-		size_line[pos++] = *p++;
-	p = number;
-	while (*p && pos + 1 < sizeof(size_line))
-		size_line[pos++] = *p++;
-	const char *suffix = " bytes";
-	p = suffix;
-	while (*p && pos + 1 < sizeof(size_line))
-		size_line[pos++] = *p++;
-	size_line[pos] = '\0';
+	kstrcpy(size_line, "size: ", sizeof(size_line));
+	kstrcat(size_line, number, sizeof(size_line));
+	kstrcat(size_line, " bytes", sizeof(size_line));
 	console_print(size_line);
 	console_print("\n");
 	if (pkg->dependency_count == 0) {
 		lcp_print_line("dependencies: ", "none");
 	} else {
 		char output[256];
-		size_t op = 0;
-		const char *sep = "";
-		for (size_t i = 0; i < pkg->dependency_count && op + 1 < sizeof(output); ++i) {
-			const char *dep = pkg->dependencies[i];
-			const char *s = sep;
-			while (*s && op + 1 < sizeof(output))
-				output[op++] = *s++;
-			s = dep;
-			while (*s && op + 1 < sizeof(output))
-				output[op++] = *s++;
-			sep = ", ";
+		output[0] = '\0';
+		for (size_t i = 0; i < pkg->dependency_count; ++i) {
+			if (i > 0)
+				kstrcat(output, ", ", sizeof(output));
+			kstrcat(output, pkg->dependencies[i], sizeof(output));
 		}
-		output[op] = '\0';
 		lcp_print_line("dependencies: ", output);
 	}
 	lcp_print_line("repository: ", pkg->repo ? pkg->repo : "");

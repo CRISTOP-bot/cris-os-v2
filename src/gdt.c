@@ -15,7 +15,7 @@ struct gdt_entry {
 
 struct gdt_ptr {
 	uint16_t limit;
-	uint32_t base;
+	uint64_t base;
 } __attribute__((packed));
 
 typedef struct gdt_entry gdt_entry_t;
@@ -37,16 +37,16 @@ static void gdt_set_entry(int num, uint32_t base, uint32_t limit,
 
 void gdt_init(void)
 {
-	gdt_set_entry(0, 0, 0, 0, 0);                    /* null */
-	gdt_set_entry(1, 0, 0xFFFFF, 0x9A, 0xCF);        /* code ring0 */
-	gdt_set_entry(2, 0, 0xFFFFF, 0x92, 0xCF);        /* data ring0 */
-	gdt_set_entry(3, 0, 0xFFFFF, 0xFA, 0xCF);        /* code ring3 */
-	gdt_set_entry(4, 0, 0xFFFFF, 0xF2, 0xCF);        /* data ring3 */
+	gdt_set_entry(0, 0, 0, 0, 0);
+	gdt_set_entry(1, 0, 0xFFFFF, 0x9A, 0xAF);
+	gdt_set_entry(2, 0, 0xFFFFF, 0x92, 0xCF);
+	gdt_set_entry(3, 0, 0xFFFFF, 0xFA, 0xCF);
+	gdt_set_entry(4, 0, 0xFFFFF, 0xF2, 0xCF);
 
 	gdt_ptr_t gp;
 	gp.limit = sizeof(gdt_entry_t) * GDT_ENTRIES - 1;
-	gp.base  = (uint32_t)&gdt_entries;
+	gp.base  = (uint64_t)&gdt_entries;
 
-	gdt_load((unsigned int)&gp);
-	console_print("[ OK ] GDT initialized (flat mode)\n");
+	gdt_load((uint64_t)&gp);
+	console_print("[ OK ] GDT initialized (64-bit flat mode)\n");
 }

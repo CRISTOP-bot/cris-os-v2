@@ -1,4 +1,4 @@
-# CrisOS v3
+# NucleOS v3
 
 ![Architecture](https://img.shields.io/badge/architecture-i386-blue?style=flat-square)
 ![Language](https://img.shields.io/badge/language-C%2BASM-orange?style=flat-square)
@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-GPLv3-green?style=flat-square)
 ![Status](https://img.shields.io/badge/status-experimental-red?style=flat-square)
 
-**CrisOS v3** es un sistema operativo modular experimental para **i386** que arranca mediante el estándar **Multiboot** con GRUB. Desarrollado en C y ensamblador x86, proporciona una base para el estudio de arquitectura de sistemas, gestión de recursos y desarrollo de kernels.
+**NucleOS v3** es un sistema operativo modular experimental para **i386** que arranca mediante el estándar **Multiboot** con GRUB. Desarrollado en C y ensamblador x86, proporciona una base para el estudio de arquitectura de sistemas, gestión de recursos y desarrollo de kernels.
 
 ---
 
@@ -32,7 +32,7 @@
 - **Teclado PS/2** — Controlador con soporte de interrupciones y layout QWERTY/ES/DE intercambiable.
 - **Mouse PS/2** — Controlador con soporte de interrupciones.
 - **Consola VGA** — Modo texto 80×25 con soporte completo de colores (16 colores VGA).
-- **Shell interactivo** — Prompt coloreado (`cris@crisos:/path$`), historial, comandos nativos.
+- **Shell interactivo** — Prompt coloreado (`nucleos@nucleos:/path$`), historial, comandos nativos.
 - **fastfetch** — Información del sistema: CPU (vía CPUID), memoria, uptime, archivos, layout.
 - **GUI estilo KDE Plasma** — Escritorio con íconos, panel inferior con reloj y lanzador de aplicaciones.
 - **VFS** — Sistema de archivos virtual con soporte para subdirectorios.

@@ -44,6 +44,8 @@ char *kstrcpy(char *dest, const char *src, size_t maxlen)
 
 char *kstrcat(char *dest, const char *src, size_t maxlen)
 {
+	if (maxlen == 0)
+		return dest;
 	size_t i = 0;
 	while (i < maxlen && dest[i])
 		++i;
@@ -52,8 +54,7 @@ char *kstrcat(char *dest, const char *src, size_t maxlen)
 		dest[i + j] = src[j];
 		++j;
 	}
-	if (maxlen > 0)
-		dest[i + j] = '\0';
+	dest[i + j] = '\0';
 	return dest;
 }
 
@@ -138,6 +139,49 @@ void kitoa(long value, char *buf, size_t maxlen)
 		}
 		if (neg && pos + 1 < maxlen)
 			buf[pos++] = '-';
+		while (rp > 0 && pos + 1 < maxlen)
+			buf[pos++] = rev[--rp];
+	}
+	buf[pos] = '\0';
+}
+
+void kutoa(unsigned long value, char *buf, size_t maxlen)
+{
+	if (maxlen == 0)
+		return;
+	size_t pos = 0;
+	if (value == 0) {
+		if (pos + 1 < maxlen)
+			buf[pos++] = '0';
+	} else {
+		char rev[32];
+		size_t rp = 0;
+		while (value > 0 && rp < sizeof(rev)) {
+			rev[rp++] = (char)('0' + (value % 10));
+			value /= 10;
+		}
+		while (rp > 0 && pos + 1 < maxlen)
+			buf[pos++] = rev[--rp];
+	}
+	buf[pos] = '\0';
+}
+
+void kxtoa(unsigned long value, char *buf, size_t maxlen)
+{
+	if (maxlen == 0)
+		return;
+	const char *hex = "0123456789ABCDEF";
+	size_t pos = 0;
+	if (value == 0) {
+		if (pos + 1 < maxlen)
+			buf[pos++] = '0';
+	} else {
+		char rev[32];
+		size_t rp = 0;
+		while (value > 0 && rp < sizeof(rev)) {
+			rev[rp++] = hex[value & 0xF];
+			value >>= 4;
+		}
 		while (rp > 0 && pos + 1 < maxlen)
 			buf[pos++] = rev[--rp];
 	}

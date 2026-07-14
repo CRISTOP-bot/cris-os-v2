@@ -37,15 +37,15 @@ bool fs_init(const void *image, size_t size)
 		return false;
 	if (fs_header->version != 1)
 		return false;
-	fs_entry_count = fs_header->file_count;
-	size_t table_size = fs_entry_count * sizeof(fs_entry_t);
-	size_t min_size = sizeof(fs_header_t) + table_size;
-	if (size < min_size)
+	if (fs_header->file_count > 10000)
 		return false;
+	fs_entry_count = fs_header->file_count;
+	if (fs_entry_count > (size - sizeof(fs_header_t)) / sizeof(fs_entry_t))
+		fs_entry_count = (size - sizeof(fs_header_t)) / sizeof(fs_entry_t);
 	fs_entries = (const fs_entry_t *)((const unsigned char *)image + sizeof(fs_header_t));
 	for (size_t i = 0; i < fs_entry_count; ++i) {
 		const fs_entry_t *entry = &fs_entries[i];
-		if (entry->offset + entry->size > size)
+		if (entry->offset >= size || entry->size > size - entry->offset)
 			return false;
 	}
 	fs_image_base = (const unsigned char *)image;

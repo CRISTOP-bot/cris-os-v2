@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-mkiso.py — Build a GRUB Multiboot ISO for CrisOS v3.
+mkiso.py — Build a GRUB Multiboot ISO for NucleOS v3.
 
 What it does:
 - Copies the kernel into iso/boot/kernel.bin
@@ -235,7 +235,7 @@ def make_grub_cfg(kernel_name: str, module_name: str | None) -> str:
         "set timeout=0",
         "set default=0",
         "",
-        "menuentry \"CrisOS v3\" {",
+        "menuentry \"NucleOS v3\" {",
         f"    multiboot /boot/{kernel_name}",
     ]
     if module_name:
@@ -352,7 +352,7 @@ def run_qemu(iso: Path, extra_args: list[str] | None = None) -> None:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Build a GRUB Multiboot ISO for CrisOS v3."
+        description="Build a GRUB Multiboot ISO for NucleOS v3."
     )
     p.add_argument(
         "--kernel",

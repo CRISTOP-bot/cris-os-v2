@@ -1,5 +1,5 @@
-#ifndef CRISOS_TIMER_H
-#define CRISOS_TIMER_H
+#ifndef NUCLEOS_TIMER_H
+#define NUCLEOS_TIMER_H
 
 void timer_init(unsigned int frequency);
 unsigned long timer_get_ticks(void);

@@ -1,5 +1,5 @@
-NAME="CrisOS"
+NAME="NucleOS"
 VERSION="3.0.0"
-ID=crisos
-PRETTY_NAME="CrisOS v3"
-HOME_URL="https://github.com/CRISTOP-bot/cris-os-v2"
+ID=nucleos
+PRETTY_NAME="NucleOS v3"
+HOME_URL="https://github.com/nucleos/nucleos"

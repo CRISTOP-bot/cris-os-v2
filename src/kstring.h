@@ -1,5 +1,5 @@
-#ifndef CRISOS_STRING_H
-#define CRISOS_STRING_H
+#ifndef NUCLEOS_STRING_H
+#define NUCLEOS_STRING_H
 
 #include <stddef.h>
 
@@ -14,6 +14,8 @@ void *kmemset(void *s, int c, size_t n);
 void *kmemcpy(void *dest, const void *src, size_t n);
 int kmemcmp(const void *a, const void *b, size_t n);
 void kitoa(long value, char *buf, size_t maxlen);
+void kutoa(unsigned long value, char *buf, size_t maxlen);
+void kxtoa(unsigned long value, char *buf, size_t maxlen);
 
 static inline const char *kskip_spaces(const char *s)
 {

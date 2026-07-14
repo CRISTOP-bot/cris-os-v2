@@ -1,0 +1,6 @@
+[Unit]
+Description=Hello service for NucleOS
+WantedBy=default.target
+
+[Service]
+ExecStart=echo Hello from openrc service

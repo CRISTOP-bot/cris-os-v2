@@ -1,5 +1,20 @@
 #include "calc.h"
 
+#ifndef LONG_MAX
+#if __WORDSIZE == 64
+#define LONG_MAX 9223372036854775807L
+#else
+#define LONG_MAX 2147483647L
+#endif
+#endif
+#ifndef LONG_MIN
+#if __WORDSIZE == 64
+#define LONG_MIN (-9223372036854775807L - 1)
+#else
+#define LONG_MIN (-2147483647L - 1)
+#endif
+#endif
+
 static const char* expr_ptr;
 
 static void skip_spaces(void) { while (*expr_ptr == ' ') ++expr_ptr; }
@@ -10,7 +25,16 @@ static long parse_number(void) {
     if (*expr_ptr == '+') { ++expr_ptr; }
     else if (*expr_ptr == '-') { sign = -1; ++expr_ptr; }
     long val = 0;
-    while (*expr_ptr >= '0' && *expr_ptr <= '9') { val = val*10 + (*expr_ptr - '0'); ++expr_ptr; }
+    while (*expr_ptr >= '0' && *expr_ptr <= '9') {
+        long digit = *expr_ptr - '0';
+        if (val > (LONG_MAX - digit) / 10) {
+            val = sign == 1 ? LONG_MAX : LONG_MIN;
+            while (*expr_ptr >= '0' && *expr_ptr <= '9') ++expr_ptr;
+            break;
+        }
+        val = val * 10 + digit;
+        ++expr_ptr;
+    }
     return sign * val;
 }
 

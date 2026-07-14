@@ -31,5 +31,7 @@ void console_print(const char *s);
 void console_print_color(const char *s, unsigned char attr);
 void console_print_at(int x, int y, const char *s, unsigned char attr);
 void kernel_panic(const char *message);
+void kernel_panic_ex(const char *message, unsigned int exception_num,
+		     unsigned int error_code, unsigned int *regs);
 
 #endif /* CONSOLE_H */

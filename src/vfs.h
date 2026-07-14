@@ -18,4 +18,8 @@ bool vfs_write(const char *path, const char *content, size_t length);
 const void *vfs_read(const char *path);
 size_t vfs_get_size(const char *path);
 bool vfs_exists(const char *path);
+bool vfs_is_dir(const char *path);
+int vfs_get_children(const char *path, const char **names, int max_names);
+int vfs_get_file_count(const char *path);
+bool vfs_stat(const char *path);
 #endif /* VFS_H */

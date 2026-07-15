@@ -18,9 +18,10 @@
 #include "vmm.h"
 #include "apps.h"
 #include <stdbool.h>
+#include <stdint.h>
 
-extern unsigned long sys_mem_lower;
-extern unsigned long sys_mem_upper;
+extern uint32_t sys_mem_lower;
+extern uint32_t sys_mem_upper;
 
 static const char *parse_token(const char *s, char *out, int maxlen)
 {
@@ -263,17 +264,25 @@ static const char *layout_name(int id)
 	}
 }
 
-static void print_cpu_vendor(char *out, int maxlen)
+static void print_cpu_vendor(char *out)
 {
 	unsigned int res[4];
 	out[0] = '\0';
 	cpuid(0, res);
 	if (res[0] == 0) return;
-	unsigned char *vendor = (unsigned char *)&res[1];
-	int i;
-	for (i = 0; i < 12 && i < maxlen - 1; ++i)
-		out[i] = vendor[i];
-	out[i] = '\0';
+	out[0] = (res[1] >> 0) & 0xFF;
+	out[1] = (res[1] >> 8) & 0xFF;
+	out[2] = (res[1] >> 16) & 0xFF;
+	out[3] = (res[1] >> 24) & 0xFF;
+	out[4] = (res[3] >> 0) & 0xFF;
+	out[5] = (res[3] >> 8) & 0xFF;
+	out[6] = (res[3] >> 16) & 0xFF;
+	out[7] = (res[3] >> 24) & 0xFF;
+	out[8] = (res[2] >> 0) & 0xFF;
+	out[9] = (res[2] >> 8) & 0xFF;
+	out[10] = (res[2] >> 16) & 0xFF;
+	out[11] = (res[2] >> 24) & 0xFF;
+	out[12] = '\0';
 }
 
 static void fastfetch(void)
@@ -281,28 +290,30 @@ static void fastfetch(void)
 	char buf[32];
 	char cpu_vendor[16];
 
-	print_cpu_vendor(cpu_vendor, sizeof(cpu_vendor));
+	print_cpu_vendor(cpu_vendor);
 
 	unsigned char attr_label = VGA_ATTR(VGA_CYAN, VGA_BLACK);
 	unsigned char attr_val  = VGA_ATTR(VGA_WHITE, VGA_BLACK);
 	unsigned char attr_sep  = VGA_DEFAULT_ATTR;
 
 	console_print_color("\n", attr_sep);
-	console_print_color("  ╔══════════════════╗  ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("   _   _            _   _  ____   ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
 	console_print_color("OS:      ", attr_label); console_print_color("NucleOS v3 x86_64\n", attr_val);
-	console_print_color("  ║   NucleOS v3   ║  ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("  | \\ | | ___  _ __| | | |/ ___| ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
 	console_print_color("Kernel:  ", attr_label); console_print_color("NucleOS v3\n", attr_val);
-	console_print_color("  ╚══════════════════╝  ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("  |  \\| |/ _ \\| '__| | | | |  _  ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
 	console_print_color("CPU:     ", attr_label);
 	console_print_color(cpu_vendor[0] ? cpu_vendor : "x86_64 (no CPUID)", attr_val);
 	console_print("\n");
-	console_print_color("                           ", attr_label); console_print_color("Uptime:  ", attr_label);
+	console_print_color("  | |\\  | (_) | |  | |_| | |_| | ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("Uptime:  ", attr_label);
 	unsigned long ticks = timer_get_ticks();
 	unsigned long secs = ticks / 100;
 	kitoa(secs, buf, sizeof(buf));
 	console_print_color(buf, attr_val);
 	console_print_color("s\n", attr_val);
-	console_print_color("                           ", attr_label); console_print_color("Memory:  ", attr_label);
+	console_print_color("  |_| \\_|\\___/|_|   \\___/ \\____| ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("Memory:  ", attr_label);
 	if (sys_mem_upper) {
 		kitoa((sys_mem_upper + sys_mem_lower) / 1024, buf, sizeof(buf));
 		console_print_color(buf, attr_val);
@@ -310,15 +321,15 @@ static void fastfetch(void)
 	} else {
 		console_print_color("not detected\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
 	}
-	console_print_color("                           ", attr_label); console_print_color("Shell:   ", attr_label); console_print_color("NucleOS Shell\n", attr_val);
-	console_print_color("                           ", attr_label); console_print_color("Term:    ", attr_label); console_print_color("VGA 80x25\n", attr_val);
-	console_print_color("                           ", attr_label); console_print_color("User:    ", attr_label); console_print_color("nucleos\n", attr_val);
-	console_print_color("                           ", attr_label); console_print_color("Layout:  ", attr_label);
+	console_print_color("                                  ", attr_label); console_print_color("Shell:   ", attr_label); console_print_color("NucleOS Shell\n", attr_val);
+	console_print_color("                                  ", attr_label); console_print_color("Term:    ", attr_label); console_print_color("VGA 80x25\n", attr_val);
+	console_print_color("                                  ", attr_label); console_print_color("User:    ", attr_label); console_print_color("nucleos\n", attr_val);
+	console_print_color("                                  ", attr_label); console_print_color("Layout:  ", attr_label);
 	console_print_color(layout_name(keyboard_get_layout()), attr_val);
 	console_print("\n");
 	unsigned long nfiles = fs_file_count();
 	kitoa(nfiles, buf, sizeof(buf));
-	console_print_color("                           ", attr_label); console_print_color("Files:   ", attr_label);
+	console_print_color("                                  ", attr_label); console_print_color("Files:   ", attr_label);
 	console_print_color(buf, attr_val);
 	console_print_color(" in rootfs\n", attr_val);
 	console_print("\n");
@@ -432,10 +443,15 @@ void shell_run(void)
 {
 	char buf[256];
 
-	console_print_color("╔════════════════════════════════════════════╗\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color("║        NucleOS v3 Interactive Shell        ║\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color("║        Type 'help' for commands            ║\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
-	console_print_color("╚════════════════════════════════════════════╝\n\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("+==========================================+\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("|   _   _            _   _  ____           |\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("|  | \\ | | ___  _ __| | | |/ ___|         |\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("|  |  \\| |/ _ \\| '__| | | | |  _          |\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("|  | |\\  | (_) | |  | |_| | |_| |         |\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("|  |_| \\_|\\___/|_|   \\___/ \\____|  v3     |\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("|                                          |\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("|   Type 'help' for available commands     |\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	console_print_color("+==========================================+\n\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
 
 	while (1) {
 		print_prompt();
@@ -880,12 +896,11 @@ void shell_run(void)
 				if (kstreq(arg1, "-n")) {
 					nlines = parse_int(arg2);
 					if (nlines <= 0) nlines = 10;
-					path = rest;
 					char tok[128];
 					const char *r = rest;
 					r = parse_token(r, tok, sizeof(tok));
 					r = parse_token(r, tok, sizeof(tok));
-					path = tok;
+					path = kskip_spaces(r);
 				}
 				const void *data = vfs_read(path);
 				size_t size = vfs_get_size(path);
@@ -916,7 +931,7 @@ void shell_run(void)
 					const char *r = rest;
 					r = parse_token(r, tok, sizeof(tok));
 					r = parse_token(r, tok, sizeof(tok));
-					path = tok;
+					path = kskip_spaces(r);
 				}
 				const void *data = vfs_read(path);
 				size_t size = vfs_get_size(path);

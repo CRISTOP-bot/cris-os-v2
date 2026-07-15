@@ -70,12 +70,14 @@ static void boot_delay(void)
 static void print_banner(void)
 {
 	console_print_color("\n", VGA_DEFAULT_ATTR);
-	console_print_color("    _   _       _                        ___  ____  \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color("   | \\ | | ___ | |_ ___  ___  _ __     / _ \\/ ___| \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color("   |  \\| |/ _ \\| __/ _ \\/ __|| '_ \\   | | | \\___ \\ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color("   | |\\  | (_) | || (_) \\__ \\| | | |  | |_| |___) |\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color("   |_| \\_|\\___/ \\__\\___/|___/|_| |_|   \\___/|____/ \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-	console_print_color("             ~ Open Source Operating System ~\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	console_print_color("========================================\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("   _   _            _   _  ____         \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("  | \\ | | ___  _ __| | | |/ ___|       \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("  |  \\| |/ _ \\| '__| | | | |  _        \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("  | |\\  | (_) | |  | |_| | |_| |       \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("  |_| \\_|\\___/|_|   \\___/ \\____|       \n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("========================================\n", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+	console_print_color("      Open Source Operating System\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
 	console_print("\n");
 	boot_info("Booting NucleOS v3 x86_64...\n");
 	boot_delay();
@@ -99,7 +101,7 @@ void kmain(unsigned long mbi_addr)
 	pic_init();
 	boot_status("Initialized PIC");
 	boot_delay();
-	pic_mask(0xF9, 0xFF);
+	pic_mask(0xFC, 0xFF);
 
 	if (mbi_addr) {
 		struct multiboot_info *mbi = (struct multiboot_info *)mbi_addr;
@@ -133,7 +135,7 @@ void kmain(unsigned long mbi_addr)
 	boot_delay();
 
 	mouse_init();
-	pic_mask(0xF9, 0xEF);
+	pic_mask(0xFC, 0xEF);
 	boot_status("Initialized Mouse");
 
 	bool rootfs_loaded = false;
@@ -147,14 +149,14 @@ void kmain(unsigned long mbi_addr)
 			boot_delay();
 
 			struct multiboot_module *mods =
-			    (struct multiboot_module *)mbi->mods_addr;
+			    (struct multiboot_module *)(uintptr_t)mbi->mods_addr;
 
 			for (unsigned long i = 0; i < mbi->mods_count; ++i) {
-				const char *name = (const char *)mods[i].cmdline;
+				const char *name = (const char *)(uintptr_t)mods[i].cmdline;
 				if (name && kstrstr(name, "rootfs")) {
 					boot_info("Mounting rootfs...\n");
 					boot_delay();
-					if (fs_init((const void *)mods[i].mod_start,
+					if (fs_init((const void *)(uintptr_t)mods[i].mod_start,
 						    mods[i].mod_end - mods[i].mod_start)) {
 						boot_status("Mounted rootfs");
 						boot_delay();

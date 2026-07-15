@@ -121,7 +121,9 @@ struct isr_regs {
 void exception_handler(struct isr_regs *r)
 {
 	console_clear_color(0x4F);
-	console_print_color("=== CRITICAL EXCEPTION ===\n\n", VGA_ATTR(VGA_WHITE, VGA_RED));
+	console_print_color("+========================================+\n", VGA_ATTR(VGA_WHITE, VGA_RED));
+	console_print_color("|       CRITICAL CPU EXCEPTION            |\n", VGA_ATTR(VGA_WHITE, VGA_RED));
+	console_print_color("+========================================+\n\n", VGA_ATTR(VGA_WHITE, VGA_RED));
 	if (r->num < 32) {
 		console_print("Exception: ");
 		console_print(exception_names[r->num]);
@@ -138,7 +140,8 @@ void exception_handler(struct isr_regs *r)
 	regs[5] = r->rdi;
 	regs[6] = r->rbp;
 	regs[7] = 0;
-	kernel_panic_ex(exception_names[r->num], (unsigned int)r->num,
+	const char *exc_name = (r->num < 32) ? exception_names[r->num] : "Unknown exception";
+	kernel_panic_ex(exc_name, (unsigned int)r->num,
 			(unsigned int)r->err, (unsigned int *)regs);
 	halt_cpu();
 }

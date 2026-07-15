@@ -8,8 +8,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-extern unsigned long sys_mem_lower;
-extern unsigned long sys_mem_upper;
+extern uint32_t sys_mem_lower;
+extern uint32_t sys_mem_upper;
 
 static int pci_scroll;
 

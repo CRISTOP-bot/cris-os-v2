@@ -666,6 +666,7 @@ static void lcp_install_package(lcp_package_t *pkg, bool no_deps)
 		console_print("Package already installed.\n");
 		return;
 	}
+	pkg->installed = true;
 	if (!no_deps) {
 		for (size_t i = 0; i < pkg->dependency_count; ++i) {
 			lcp_package_t *dep = lcp_find_package(pkg->dependencies[i]);
@@ -673,7 +674,6 @@ static void lcp_install_package(lcp_package_t *pkg, bool no_deps)
 				lcp_install_package(dep, false);
 		}
 	}
-	pkg->installed = true;
 	console_print("Installed ");
 	console_print(pkg->name);
 	console_print("\n");

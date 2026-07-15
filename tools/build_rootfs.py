@@ -3,7 +3,7 @@ import os
 import struct
 import sys
 
-MAGIC = b'NRFS'
+MAGIC = b'CRFS'
 VERSION = 1
 HEADER_FMT = '<4sIII'
 ENTRY_FMT = '<64sII'

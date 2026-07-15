@@ -34,7 +34,7 @@ void memory_init(void)
 	heap_page_count = 0;
 	heap_base = 0;
 
-	heap_page_count = 16;
+	heap_page_count = 1;
 	heap_base = pmm_alloc_page();
 	if (!heap_base) {
 		console_print("[MEM] WARNING: No page for heap\n");

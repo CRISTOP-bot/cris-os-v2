@@ -102,7 +102,7 @@ int ui_read_key(void)
         if (sc == 0x01) return 27;
         if (sc == 0x0F) return '\t';
         if (!(sc & 0x80)) {
-            char c = keyboard_read_char();
+            char c = keyboard_scancode_to_char(sc);
             if (c) return c;
         }
     }

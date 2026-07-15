@@ -40,7 +40,7 @@ void gdt_init(void)
 	gdt_set_entry(0, 0, 0, 0, 0);
 	gdt_set_entry(1, 0, 0xFFFFF, 0x9A, 0xAF);
 	gdt_set_entry(2, 0, 0xFFFFF, 0x92, 0xCF);
-	gdt_set_entry(3, 0, 0xFFFFF, 0xFA, 0xCF);
+	gdt_set_entry(3, 0, 0xFFFFF, 0xFA, 0xAF);
 	gdt_set_entry(4, 0, 0xFFFFF, 0xF2, 0xCF);
 
 	gdt_ptr_t gp;

@@ -586,15 +586,15 @@ static int game2048_slide_row(int row[4], int *score_add)
 			row[dst - 1] *= 2;
 			*score_add += row[dst - 1];
 			merged[dst - 1] = 1;
+			moved = 1;
 		} else {
+			if (dst != src) moved = 1;
 			row[dst] = row[src];
 			dst++;
 		}
 	}
 	for (int i = dst; i < 4; ++i)
 		row[i] = 0;
-	for (int i = 0; i < 4; ++i)
-		if (row[i] != 0) moved = 1;
 	return moved;
 }
 
@@ -1322,22 +1322,24 @@ void games_menu(void)
 	int running = 1;
 	while (running) {
 		console_clear();
-		console_print_at(0, 0,  "    _   _       _                        ___  ____  ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-		console_print_at(0, 1,  "   | \\ | | ___ | |_ ___  ___  _ __     / _ \\/ ___| ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-		console_print_at(0, 2,  "   |  \\| |/ _ \\| __/ _ \\/ __|| '_ \\   | | | \\___ \\ ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-		console_print_at(0, 3,  "   | |\\  | (_) | || (_) \\__ \\| | | |  | |_| |___) |", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-		console_print_at(0, 4,  "   |_| \\_|\\___/ \\__\\___/|___/|_| |_|   \\___/|____/ ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
-		console_print_at(0, 5,  "                 G A M E S                          ", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-		console_print_at(0, 7,  "  1. Snake", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-		console_print_at(0, 8,  "  2. Tetris", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-		console_print_at(0, 9,  "  3. Pong", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-		console_print_at(0, 10, "  4. 2048", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-		console_print_at(0, 11, "  5. Tic-Tac-Toe", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-		console_print_at(0, 12, "  6. Minesweeper", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-		console_print_at(0, 13, "  7. Breakout", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-		console_print_at(0, 14, "  8. Memory", VGA_ATTR(VGA_WHITE, VGA_BLACK));
-		console_print_at(0, 16, "  Q. Back to shell", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
-		console_print_at(0, 18, "Select: ", VGA_DEFAULT_ATTR);
+		console_print_at(0, 0,  "========================================", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+		console_print_at(0, 1,  "   _   _            _   _  ____         ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+		console_print_at(0, 2,  "  | \\ | | ___  _ __| | | |/ ___|       ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+		console_print_at(0, 3,  "  |  \\| |/ _ \\| '__| | | | |  _        ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+		console_print_at(0, 4,  "  | |\\  | (_) | |  | |_| | |_| |       ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+		console_print_at(0, 5,  "  |_| \\_|\\___/|_|   \\___/ \\____|       ", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+		console_print_at(0, 6,  "========================================", VGA_ATTR(VGA_CYAN, VGA_BLACK));
+		console_print_at(0, 7,  "              G A M E S", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print_at(0, 9,  "  1. Snake", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print_at(0, 10, "  2. Tetris", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print_at(0, 11, "  3. Pong", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print_at(0, 12, "  4. 2048", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print_at(0, 13, "  5. Tic-Tac-Toe", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print_at(0, 14, "  6. Minesweeper", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print_at(0, 15, "  7. Breakout", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print_at(0, 16, "  8. Memory", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+		console_print_at(0, 18, "  Q. Back to shell", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+		console_print_at(0, 20, "Select: ", VGA_DEFAULT_ATTR);
 		while (1) {
 			if (keyboard_data_available()) {
 				int sc = keyboard_read_scancode();

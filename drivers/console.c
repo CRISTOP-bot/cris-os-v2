@@ -10,6 +10,15 @@ static int cursor_x = 0, cursor_y = 0;
 #define VGA_COLS 80
 #define VGA_ROWS 25
 
+static void update_cursor(void)
+{
+    unsigned short pos = cursor_y * VGA_COLS + cursor_x;
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (unsigned char)(pos & 0xFF));
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (unsigned char)((pos >> 8) & 0xFF));
+}
+
 static inline void scroll_if_needed(void) {
     if (cursor_y >= VGA_ROWS) {
         for (int y = 1; y < VGA_ROWS; ++y)
@@ -48,6 +57,7 @@ void console_putchar_color(char c, unsigned char attr) {
         cursor_x++;
     }
     if (cursor_y >= VGA_ROWS) scroll_if_needed();
+    update_cursor();
 }
 
 void console_print(const char* s) {
@@ -83,12 +93,14 @@ void kernel_panic_ex(const char* message, unsigned int exception_num,
 		     unsigned int error_code, unsigned int *regs) {
     console_clear_color(VGA_ATTR(VGA_WHITE, VGA_RED));
 
-    console_print_color("    _   _       _                        ___  ____  \n", VGA_ATTR(VGA_WHITE, VGA_RED));
-    console_print_color("   | \\ | | ___ | |_ ___  ___  _ __     / _ \\/ ___| \n", VGA_ATTR(VGA_WHITE, VGA_RED));
-    console_print_color("   |  \\| |/ _ \\| __/ _ \\/ __|| '_ \\   | | | \\___ \\ \n", VGA_ATTR(VGA_WHITE, VGA_RED));
-    console_print_color("   | |\\  | (_) | || (_) \\__ \\| | | |  | |_| |___) |\n", VGA_ATTR(VGA_WHITE, VGA_RED));
-    console_print_color("   |_| \\_|\\___/ \\__\\___/|___/|_| |_|   \\___/|____/ \n", VGA_ATTR(VGA_WHITE, VGA_RED));
-    console_print_color("              !! KERNEL PANIC !!                 \n", VGA_ATTR(VGA_YELLOW, VGA_RED));
+    console_print_color("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n", VGA_ATTR(VGA_WHITE, VGA_RED));
+    console_print_color("   _   _            _   _  ____         \n", VGA_ATTR(VGA_WHITE, VGA_RED));
+    console_print_color("  | \\ | | ___  _ __| | | |/ ___|       \n", VGA_ATTR(VGA_WHITE, VGA_RED));
+    console_print_color("  |  \\| |/ _ \\| '__| | | | |  _        \n", VGA_ATTR(VGA_WHITE, VGA_RED));
+    console_print_color("  | |\\  | (_) | |  | |_| | |_| |       \n", VGA_ATTR(VGA_WHITE, VGA_RED));
+    console_print_color("  |_| \\_|\\___/|_|   \\___/ \\____|       \n", VGA_ATTR(VGA_WHITE, VGA_RED));
+    console_print_color("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n", VGA_ATTR(VGA_WHITE, VGA_RED));
+    console_print_color("           !! KERNEL PANIC !!\n", VGA_ATTR(VGA_YELLOW, VGA_RED));
 
     if (message && message[0]) {
         console_print_color("  ", VGA_ATTR(VGA_WHITE, VGA_RED));
@@ -165,6 +177,7 @@ void console_clear_color(unsigned char attr) {
     memsetw_asm((void*)VGA, value, 80 * 25);
     cursor_x = 0;
     cursor_y = 0;
+    update_cursor();
 }
 
 void console_clear(void) {

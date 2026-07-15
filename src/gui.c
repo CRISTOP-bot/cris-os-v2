@@ -247,7 +247,7 @@ static void draw_start_menu(void)
 	}
 	draw_text_safe(mx + 2, my + mh - 2, "  \x18\x19 Navigate  Enter:OK  Q:Close",
 			VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
-	safe_putxy(mx + 2 + menu_idx * 0, my + 3 + menu_idx, 0x10, MENU_SEL);
+	safe_putxy(mx + 2, my + 3 + menu_idx, 0x10, MENU_SEL);
 }
 
 static void run_start_menu_item(int idx)

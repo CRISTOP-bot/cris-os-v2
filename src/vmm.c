@@ -4,10 +4,7 @@
 #include "console.h"
 #include <stdint.h>
 
-#define PML4_ENTRIES 512
 #define PDP_ENTRIES  512
-#define PD_ENTRIES   512
-#define PT_ENTRIES   512
 
 #define PRESENT  (1ULL << 0)
 #define WRITE    (1ULL << 1)
@@ -15,10 +12,7 @@
 #define PS       (1ULL << 7)
 #define NX       (1ULL << 63)
 
-static uint64_t pml4_table[PML4_ENTRIES] __attribute__((aligned(4096)));
 static uint64_t pdp_table[PDP_ENTRIES]   __attribute__((aligned(4096)));
-static uint64_t pd_table[PD_ENTRIES]     __attribute__((aligned(4096)));
-static uint64_t pt_tables[4][PT_ENTRIES] __attribute__((aligned(4096)));
 
 static inline void invlpg(unsigned long addr)
 {
@@ -36,15 +30,10 @@ void vmm_init(unsigned long mem_lower, unsigned long mem_upper)
 		map_end = 16 * 1024 * 1024;
 
 	char buf[32];
-	console_print("[VMM] Using boot.S 2MB identity map, mapped ");
+	console_print("[VMM] Using boot.S identity map, mapped ");
 	kitoa(map_end / (1024 * 1024), buf, sizeof(buf));
 	console_print(buf);
-	console_print(" MB (1GB physical)\n");
-
-	pml4_table[0] = (uint64_t)&pdp_table | PRESENT | WRITE;
-	pdp_table[0]  = (uint64_t)&pd_table   | PRESENT | WRITE;
-	for (int i = 0; i < 4; i++)
-		pd_table[i] = (uint64_t)&pt_tables[i] | PRESENT | WRITE;
+	console_print(" MB\n");
 
 	(void)map_end;
 }

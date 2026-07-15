@@ -2,6 +2,7 @@
 #include "console.h"
 #include "asm.h"
 #include "pic.h"
+#include "mouse.h"
 #include <stdbool.h>
 
 #define SCANCODE_BUF_SIZE 128
@@ -83,6 +84,67 @@ static void layout_populate(void)
 	}
 }
 
+static int wait_keyboard_data(void)
+{
+        int timeout = 50000;
+        while (timeout--) {
+                unsigned char status = inb(0x64);
+                if (status & 1) {
+                        if (!(status & 0x20))
+                                return 0;
+                        (void)inb(0x60);
+                }
+        }
+        return -1;
+}
+
+static const char *layout_names[] = { "US", "ES", "DE" };
+
+static int detect_layout(void)
+{
+	int ch;
+
+	console_print("\n");
+	console_print_color("  Keyboard layout selection:\n", VGA_ATTR(VGA_WHITE, VGA_BLACK));
+	console_print("\n");
+	console_print_color("    [1] ", VGA_ATTR(VGA_LIGHT_CYAN, VGA_BLACK));
+	console_print_color("US (English)", VGA_DEFAULT_ATTR);
+	console_print_color("  - Standard QWERTY\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	console_print_color("    [2] ", VGA_ATTR(VGA_LIGHT_CYAN, VGA_BLACK));
+	console_print_color("ES (Spanish)", VGA_DEFAULT_ATTR);
+	console_print_color("  - QWERTY with ñ\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	console_print_color("    [3] ", VGA_ATTR(VGA_LIGHT_CYAN, VGA_BLACK));
+	console_print_color("DE (German)", VGA_DEFAULT_ATTR);
+	console_print_color("  - QWERTZ\n", VGA_ATTR(VGA_DARK_GREY, VGA_BLACK));
+	console_print("\n");
+	console_print_color("  Select [1/2/3]: ", VGA_ATTR(VGA_GREEN, VGA_BLACK));
+
+	current_layout = KB_LAYOUT_US;
+
+	{
+		volatile int timeout = 100;
+		while (timeout--) {
+			if (wait_keyboard_data() == 0) {
+				unsigned char sc = inb(0x60);
+				if (sc & 0x80)
+					continue;
+				if (sc == SC_1) { ch = KB_LAYOUT_US; goto layout_done; }
+				if (sc == SC_2) { ch = KB_LAYOUT_ES; goto layout_done; }
+				if (sc == SC_3) { ch = KB_LAYOUT_DE; goto layout_done; }
+			}
+		}
+	}
+	ch = KB_LAYOUT_US;
+
+layout_done:
+	current_layout = ch;
+
+	console_print_color(layout_names[ch], VGA_ATTR(VGA_WHITE, VGA_BLACK));
+	console_print("\n");
+
+	return ch;
+}
+
 void keyboard_init(void)
 {
 	shift_state = false;
@@ -103,28 +165,71 @@ void keyboard_init(void)
 
 	/* Self-test PS/2 controller */
 	outb(0x64, 0xAA);
-	(void)inb(0x60);
+	/* Wait for response with timeout */
+	{
+		int t = 100000;
+		while (t-- && !(inb(0x64) & 1))
+			;
+		if (t > 0)
+			(void)inb(0x60);
+	}
 
 	/* Enable keyboard */
 	outb(0x64, 0xAE);
 
-	/* Set keyboard to scan code set 1 */
+	/* Try to set scan code set 1 */
 	outb(0x60, 0xF0);
-	(void)inb(0x60);
-	outb(0x60, 0x01);
-	(void)inb(0x60);
+	/* Wait for ACK */
+	{
+		int t = 100000;
+		while (t-- && !(inb(0x64) & 1))
+			;
+		if (t > 0) {
+			unsigned char ack = inb(0x60);
+			if (ack == 0xFA) {
+				outb(0x60, 0x01);
+				t = 100000;
+				while (t-- && !(inb(0x64) & 1))
+					;
+				if (t > 0)
+					(void)inb(0x60);
+			}
+		}
+	}
 
 	/* Set typematic rate (fastest) */
 	outb(0x60, 0xF3);
-	(void)inb(0x60);
+	/* Wait for ACK */
+	{
+		int t = 100000;
+		while (t-- && !(inb(0x64) & 1))
+			;
+		if (t > 0)
+			(void)inb(0x60);
+	}
 	outb(0x60, 0x00);
-	(void)inb(0x60);
+	/* Wait for ACK */
+	{
+		int t = 100000;
+		while (t-- && !(inb(0x64) & 1))
+			;
+		if (t > 0)
+			(void)inb(0x60);
+	}
 
 	/* Enable scanning */
 	outb(0x60, 0xF4);
-	(void)inb(0x60);
+	/* Wait for ACK */
+	{
+		int t = 100000;
+		while (t-- && !(inb(0x64) & 1))
+			;
+		if (t > 0)
+			(void)inb(0x60);
+	}
 
 	layout_populate();
+	detect_layout();
 }
 
 static char normalize_key(char c)
@@ -139,23 +244,15 @@ static char normalize_key(char c)
         return c;
 }
 
-static int wait_keyboard_data(void)
-{
-        int timeout = 100000;
-        while (!(inb(0x64) & 1)) {
-                if (--timeout <= 0)
-                        return -1;
-        }
-        return 0;
-}
-
 char keyboard_read_char(void)
 {
         unsigned char sc;
 
         while (1) {
-                if (wait_keyboard_data() < 0)
+                if (wait_keyboard_data() < 0) {
+                        mouse_render();
                         continue;
+                }
 
                 sc = inb(0x60);
 
@@ -256,8 +353,10 @@ void keyboard_flush(void)
 int keyboard_read_scancode(void)
 {
 	while (1) {
-		if (wait_keyboard_data() < 0)
+		if (wait_keyboard_data() < 0) {
+			mouse_render();
 			continue;
+		}
 		unsigned char sc = inb(0x60);
 		if (sc == 0xE0) {
 			if (wait_keyboard_data() < 0)
@@ -278,4 +377,15 @@ int keyboard_read_scancode(void)
 			continue;
 		return sc;
 	}
+}
+
+char keyboard_scancode_to_char(int scancode)
+{
+	if (scancode & 0x100)
+		return 0;
+	if (scancode < 0 || scancode >= 128)
+		return 0;
+	char c = shift_state ? layouts[current_layout].shifted[scancode]
+	                     : layouts[current_layout].normal[scancode];
+	return normalize_key(c);
 }

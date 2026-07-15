@@ -28,9 +28,7 @@ static long parse_number(void) {
     while (*expr_ptr >= '0' && *expr_ptr <= '9') {
         long digit = *expr_ptr - '0';
         if (val > (LONG_MAX - digit) / 10) {
-            val = sign == 1 ? LONG_MAX : LONG_MIN;
-            while (*expr_ptr >= '0' && *expr_ptr <= '9') ++expr_ptr;
-            break;
+            return (sign == 1) ? LONG_MAX : LONG_MIN;
         }
         val = val * 10 + digit;
         ++expr_ptr;

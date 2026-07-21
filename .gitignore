@@ -4,6 +4,7 @@ iso/boot/kernel.bin
 iso/boot/rootfs.bin
 iso/boot/grub/core.img
 iso/boot/grub/eltorito.img
+.github/workflows
 
 # Python cache
 __pycache__/

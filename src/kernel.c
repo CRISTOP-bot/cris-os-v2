@@ -17,11 +17,24 @@
 #include "pmm.h"
 #include "vmm.h"
 #include "memory.h"
+#include "tss.h"
+#include "syscall.h"
+#include "process.h"
+#include "serial.h"
+#include "rust_ffi.h"
+#include "persist.h"
+#include "net.h"
+#include "ata.h"
+#include "part.h"
+#include "ext2.h"
 #include <stdbool.h>
 #include <stdint.h>
 
+#define MULTIBOOT_MAGIC 0x2BADB002
+
 uint32_t sys_mem_lower;
 uint32_t sys_mem_upper;
+extern uint32_t multiboot_magic;
 
 struct multiboot_info {
 	uint32_t flags;
@@ -83,13 +96,41 @@ static void print_banner(void)
 	boot_delay();
 }
 
+static void enable_a20(void)
+{
+	outb(0x64, 0xAD);
+	outb(0x64, 0xD0);
+	int t = 10000;
+	while (t-- && !(inb(0x64) & 1));
+	uint8_t val = inb(0x60);
+	outb(0x64, 0xD1);
+	t = 10000;
+	while (t-- && (inb(0x64) & 2));
+	outb(0x60, val | 2);
+	outb(0x64, 0xAE);
+}
+
 void kmain(unsigned long mbi_addr)
 {
 	console_clear();
 	print_banner();
 
-	boot_status("Started Console");
+	if (multiboot_magic != MULTIBOOT_MAGIC) {
+		boot_failed("Invalid multiboot magic");
+		halt_cpu();
+	}
+
+	if (mbi_addr) {
+		struct multiboot_info *mbi = (struct multiboot_info *)mbi_addr;
+		if ((mbi->flags & 0x1) == 0) {
+			boot_failed("No memory info from bootloader");
+		}
+	}
+
+	enable_a20();
+	boot_status("A20 gate enabled");
 	boot_delay();
+
 	gdt_init();
 	boot_status("Loaded GDT");
 	boot_delay();
@@ -111,6 +152,11 @@ void kmain(unsigned long mbi_addr)
 		}
 	}
 
+	if (!sys_mem_upper) {
+		boot_failed("No usable memory detected");
+		halt_cpu();
+	}
+
 	pmm_init(sys_mem_lower, sys_mem_upper);
 	boot_status("Initialized Physical Memory Manager");
 	boot_delay();
@@ -123,11 +169,24 @@ void kmain(unsigned long mbi_addr)
 	boot_status("Initialized Heap Allocator");
 	boot_delay();
 
+	tss_init();
+	boot_status("Initialized TSS");
+	boot_delay();
+
+	serial_init();
+	boot_status("Initialized Serial Port");
+	boot_delay();
+
+	rust_serial_init();
+	rust_info();
+	boot_status("Loaded Rust kernel module");
+	boot_delay();
+
 	pci_init();
 	boot_delay();
 
 	timer_init(100);
-	boot_status("Started PIT");
+	boot_status("Started PIT (100 Hz)");
 	boot_delay();
 
 	keyboard_init();
@@ -154,11 +213,11 @@ void kmain(unsigned long mbi_addr)
 			for (unsigned long i = 0; i < mbi->mods_count; ++i) {
 				const char *name = (const char *)(uintptr_t)mods[i].cmdline;
 				if (name && kstrstr(name, "rootfs")) {
-					boot_info("Mounting rootfs...\n");
+					boot_info("Mounting rootfs from module...\n");
 					boot_delay();
 					if (fs_init((const void *)(uintptr_t)mods[i].mod_start,
 						    mods[i].mod_end - mods[i].mod_start)) {
-						boot_status("Mounted rootfs");
+						boot_status("Mounted rootfs (module)");
 						boot_delay();
 						if (vfs_init()) {
 							boot_status("Initialized VFS");
@@ -178,6 +237,63 @@ void kmain(unsigned long mbi_addr)
 		}
 	}
 
+	if (!rootfs_loaded) {
+		boot_info("No module rootfs found, trying disk...\n");
+		boot_delay();
+
+		boot_info("ATA scan...\n");
+		ata_init();
+
+		struct part_entry part;
+		if (part_find_by_type(0, PART_TYPE_LINUX, &part) > 0) {
+			boot_info("Found Linux partition on disk\n");
+			boot_delay();
+
+			if (ext2_mount(0, part.lba_start)) {
+				boot_status("EXT2 filesystem mounted");
+
+				uint32_t rootfs_size = ext2_get_file_size("/boot/rootfs.bin");
+				if (rootfs_size > 0) {
+					boot_info("Loading rootfs.bin from disk...\n");
+					boot_delay();
+
+					void *rootfs_buf = pmm_alloc_page();
+					uint32_t alloc_size = PAGE_SIZE;
+
+					while (alloc_size < rootfs_size) {
+						void *extra = pmm_alloc_page();
+						if (!extra) break;
+						alloc_size += PAGE_SIZE;
+					}
+
+					if (rootfs_buf && ext2_read_file("/boot/rootfs.bin",
+					    rootfs_buf, &rootfs_size)) {
+						if (fs_init(rootfs_buf, rootfs_size)) {
+							boot_status("Mounted rootfs (disk)");
+							boot_delay();
+							if (vfs_init()) {
+								boot_status("Initialized VFS");
+								rootfs_loaded = true;
+							} else {
+								boot_failed("VFS init");
+							}
+						} else {
+							boot_failed("Rootfs mount (disk)");
+						}
+					} else {
+						boot_failed("Failed to read rootfs.bin");
+					}
+				} else {
+					boot_failed("rootfs.bin not found on disk");
+				}
+			} else {
+				boot_failed("Failed to mount EXT2");
+			}
+		} else {
+			boot_failed("No Linux partition found");
+		}
+	}
+
 	boot_delay();
 	boot_init();
 	boot_status("Started Boot Manager");
@@ -189,6 +305,22 @@ void kmain(unsigned long mbi_addr)
 
 	lcp_init();
 	boot_status("Started LCP Package Manager");
+	boot_delay();
+
+	process_init();
+	boot_status("Initialized Process Manager");
+	boot_delay();
+
+	syscall_init();
+	boot_status("Initialized Syscalls (INT 0x80)");
+	boot_delay();
+
+	persist_init();
+	boot_status("Initialized Persistent Storage");
+	boot_delay();
+
+	net_init();
+	boot_status("Initialized Network Stack");
 	boot_delay();
 
 	console_print("\n");

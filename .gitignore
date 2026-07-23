@@ -12,3 +12,6 @@ __pycache__/
 
 # Backup directories
 .header_fix_backup_*/
+
+# Bochs emulator logs
+bochsout.txt

@@ -14,6 +14,7 @@ int keyboard_get_layout(void);
 void keyboard_flush(void);
 int keyboard_read_scancode(void);
 char keyboard_scancode_to_char(int scancode);
+void keyboard_irq_handler(void);
 
 #define SC_BACKSPACE 0x0E
 #define SC_TAB       0x0F

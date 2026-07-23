@@ -80,6 +80,22 @@ outl:
     outl %eax, %dx
     ret
 
+.global inw
+.type inw, @function
+inw:
+    movw %di, %dx
+    inw %dx, %ax
+    movzwl %ax, %eax
+    ret
+
+.global outw
+.type outw, @function
+outw:
+    movw %di, %dx
+    movw %si, %ax
+    outw %ax, %dx
+    ret
+
 .global console_putxy
 .type console_putxy, @function
 console_putxy:

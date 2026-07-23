@@ -660,23 +660,37 @@ static bool lcp_has_dependents(const char *name)
 	return false;
 }
 
-static void lcp_install_package(lcp_package_t *pkg, bool no_deps)
+static bool lcp_install_package(lcp_package_t *pkg, bool no_deps, int *chain, size_t chain_len)
 {
 	if (pkg->installed) {
 		console_print("Package already installed.\n");
-		return;
+		return true;
 	}
+	int my_idx = (int)(pkg - packages);
+	for (size_t v = 0; v < chain_len; v++) {
+		if (chain[v] == my_idx) {
+			console_print("Circular dependency detected, aborting.\n");
+			return false;
+		}
+	}
+	if (chain_len < MAX_PACKAGES)
+		chain[chain_len] = my_idx;
 	pkg->installed = true;
 	if (!no_deps) {
 		for (size_t i = 0; i < pkg->dependency_count; ++i) {
 			lcp_package_t *dep = lcp_find_package(pkg->dependencies[i]);
-			if (dep && !dep->installed)
-				lcp_install_package(dep, false);
+			if (dep && !dep->installed) {
+				if (!lcp_install_package(dep, false, chain, chain_len + 1)) {
+					pkg->installed = false;
+					return false;
+				}
+			}
 		}
 	}
 	console_print("Installed ");
 	console_print(pkg->name);
 	console_print("\n");
+	return true;
 }
 
 static void lcp_remove_package(lcp_package_t *pkg, bool purge)
@@ -838,7 +852,8 @@ int lcp_handle_command(const char *args)
 			lcp_print("Package already installed.\n");
 			return 0;
 		}
-		lcp_install_package(pkg, no_deps);
+		int dep_chain[MAX_PACKAGES];
+		lcp_install_package(pkg, no_deps, dep_chain, 0);
 		return 0;
 	}
 	if (kstrcmp(token, "remove") == 0) {

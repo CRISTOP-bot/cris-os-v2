@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+import os, sys, subprocess
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from installer.config import NucleOSConfig, PartitionConfig, UserConfig
+from installer.disk import detect_disks, format_size, is_efi
+from installer.install import install
+from installer.ui import banner, section, info, ok, warn, error, dim, confirm, prompt, password, menu
+
+DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT = os.path.dirname(DIR)
+
+
+def disk_type(d):
+    t = ["SSD", "HDD"][d.rotational]
+    return f"{t}/NVMe" if "nvme" in d.path else t
+
+
+def pick_disk() -> str | None:
+    section("Disco de destino")
+    disks = detect_disks()
+    if not disks:
+        error("No se detectaron discos (¿root?)")
+        return None
+
+    opts = []
+    for d in disks:
+        parts = ", ".join(f"{p.path} ({format_size(p.size)})" for p in d.partitions[:4])
+        if len(d.partitions) > 4:
+            parts += f", ... +{len(d.partitions)-4}"
+        opts.append((f"{d.path}  {disk_type(d)}  {format_size(d.size)}", parts or "Sin particiones"))
+
+    i = menu("Selecciona disco", opts)
+    return disks[i].path if i >= 0 else None
+
+
+def pick_scheme() -> tuple:
+    section("Particionado")
+    opts = [
+        ("Automático (todo el disco)", "Borra todo y crea particiones"),
+        ("Usar existentes", "Instala en partición existente"),
+    ]
+    i = menu("Modo de particionado", opts)
+    if i < 0:
+        return False, False
+    uefi = is_efi()
+    info("Sistema " + ("UEFI" if uefi else "BIOS") + " detectado")
+    return i == 0, uefi
+
+
+def pick_fs() -> str:
+    section("Sistema de archivos")
+    fses = [
+        ("ext4", "Journaling, recomendado"),
+        ("ext3", "Journaling, legado"),
+        ("ext2", "Sin journaling"),
+        ("btrfs", "COW, snapshots"),
+    ]
+    i = menu("Selecciona FS para root", fses)
+    return fses[i][0] if i >= 0 else "ext4"
+
+
+def ask_users() -> tuple:
+    section("Usuarios")
+    rp = ""
+    while True:
+        rp = password("Contraseña root:")
+        if not rp:
+            warn("No puede estar vacía")
+            continue
+        if rp != password("Confirmar root:"):
+            warn("No coinciden")
+            continue
+        break
+
+    users = []
+    if confirm("¿Crear usuario adicional?"):
+        while True:
+            u = prompt("Nombre de usuario")
+            if not u:
+                warn("Obligatorio"); continue
+            pw = password(f"Contraseña para {u}:")
+            if not pw:
+                warn("Obligatorio"); continue
+            if pw != password(f"Confirmar {u}:"):
+                warn("No coinciden"); continue
+            users.append(UserConfig(username=u, password=pw))
+            if not confirm("¿Otro usuario?", default=False):
+                break
+    return rp, users
+
+
+def find_paths() -> tuple:
+    k = os.path.join(PROJECT, "build", "kernel.bin")
+    if not os.path.isfile(k):
+        k = os.path.join(PROJECT, "iso", "boot", "kernel.bin")
+    return k, os.path.join(PROJECT, "rootfs")
+
+
+def ensure_kernel(ks: str) -> bool:
+    if os.path.isfile(ks):
+        return True
+    warn(f"Kernel no encontrado en {ks}")
+    if os.path.isfile(os.path.join(PROJECT, "Makefile")) and confirm("¿Compilar kernel ahora?"):
+        try:
+            subprocess.run(["make", "-C", PROJECT, "iso"], check=True)
+            return True
+        except Exception as e:
+            error(str(e))
+    return False
+
+
+def main() -> int:
+    try:
+        banner()
+        if os.geteuid() != 0:
+            error("Ejecutar como root: sudo tools/nucleos-install")
+            return 1
+
+        info("Instalador de NucleOS v3")
+        dim("Ctrl+C para cancelar\n")
+
+        if not confirm("¿Iniciar instalación?"):
+            return 0
+
+        disk = pick_disk()
+        if not disk:
+            return 1
+
+        auto_part, uefi = pick_scheme()
+        if auto_part is False and uefi is False:
+            return 1
+
+        fstype = pick_fs()
+        hostname = prompt("Hostname", default="nucleos")
+        root_pw, users = ask_users()
+
+        ks, rs = find_paths()
+        if not ensure_kernel(ks):
+            error("Compila primero: make iso")
+            return 1
+
+        if not auto_part:
+            disk = prompt("Dispositivo root (ej: /dev/sda2)")
+
+        p = PartitionConfig(device=disk, fstype=fstype, boot_device=disk,
+                            uefi=uefi, auto_partition=auto_part)
+        cfg = NucleOSConfig(kernel_source=ks, rootfs_source=rs,
+                            hostname=hostname, root_password=root_pw,
+                            users=users or None, partition=p)
+
+        print()
+        section("Resumen")
+        for l in cfg.summary_lines():
+            info(l)
+        print()
+        if not confirm("¿Proceder con la instalación?") or \
+           not confirm("ADVERTENCIA: se borrarán datos. ¿Continuar?"):
+            return 0
+
+        ok("Instalando...")
+        if install(cfg):
+            section("Completado")
+            ok("NucleOS instalado")
+            if confirm("¿Reiniciar ahora?", default=False):
+                os.system("reboot")
+            return 0
+
+        section("Error")
+        error("Falló la instalación")
+        return 1
+
+    except KeyboardInterrupt:
+        print(); info("Cancelado")
+        return 130
+    except Exception as e:
+        error(str(e))
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -166,6 +166,18 @@ void kutoa(unsigned long value, char *buf, size_t maxlen)
 	buf[pos] = '\0';
 }
 
+int katoi(const char *s)
+{
+	int value = 0, sign = 1;
+	if (*s == '-') { sign = -1; ++s; }
+	while (*s >= '0' && *s <= '9') {
+		if (value > 214748364) return sign > 0 ? 2147483647 : -2147483647 - 1;
+		value = value * 10 + (*s - '0');
+		++s;
+	}
+	return value * sign;
+}
+
 void kxtoa(unsigned long value, char *buf, size_t maxlen)
 {
 	if (maxlen == 0)

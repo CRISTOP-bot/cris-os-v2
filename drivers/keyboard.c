@@ -72,6 +72,20 @@ static bool ctrl_state;
 static bool alt_state;
 static bool extended_code;
 
+static volatile unsigned char kb_irq_buf[64];
+static volatile int kb_irq_head;
+static volatile int kb_irq_tail;
+
+void keyboard_irq_handler(void)
+{
+	unsigned char sc = inb(0x60);
+	int next = (kb_irq_head + 1) % 64;
+	if (next != kb_irq_tail) {
+		kb_irq_buf[kb_irq_head] = sc;
+		kb_irq_head = next;
+	}
+}
+
 static void layout_populate(void)
 {
 	for (int i = 0; i < 128; ++i) {
@@ -249,12 +263,15 @@ char keyboard_read_char(void)
         unsigned char sc;
 
         while (1) {
-                if (wait_keyboard_data() < 0) {
+                if (kb_irq_head != kb_irq_tail) {
+                        sc = kb_irq_buf[kb_irq_tail];
+                        kb_irq_tail = (kb_irq_tail + 1) % 64;
+                } else if (wait_keyboard_data() >= 0) {
+                        sc = inb(0x60);
+                } else {
                         mouse_render();
                         continue;
                 }
-
-                sc = inb(0x60);
 
                 if (sc == 0xE0) {
                         extended_code = true;

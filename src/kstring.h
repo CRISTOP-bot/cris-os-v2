@@ -16,6 +16,7 @@ int kmemcmp(const void *a, const void *b, size_t n);
 void kitoa(long value, char *buf, size_t maxlen);
 void kutoa(unsigned long value, char *buf, size_t maxlen);
 void kxtoa(unsigned long value, char *buf, size_t maxlen);
+int katoi(const char *s);
 
 static inline const char *kskip_spaces(const char *s)
 {

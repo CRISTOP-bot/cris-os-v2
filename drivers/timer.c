@@ -1,5 +1,6 @@
 #include "timer.h"
 #include "asm.h"
+#include "process.h"
 
 #define TIMER_CMD  0x43
 #define TIMER_DATA 0x40
@@ -30,11 +31,7 @@ unsigned long timer_get_ticks(void)
 void timer_handler(void)
 {
 	++timer_ticks;
-}
-
-void timer_sleep(unsigned long ticks)
-{
-	unsigned long start = timer_ticks;
-	while (timer_ticks - start < ticks)
-		__asm__ volatile("hlt");
+	if (timer_ticks % 10 == 0) {
+		process_schedule();
+	}
 }

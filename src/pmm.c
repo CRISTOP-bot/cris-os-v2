@@ -34,9 +34,6 @@ void pmm_init(unsigned long mem_lower, unsigned long mem_upper)
 	pmm_total_pages = total_ram / PAGE_SIZE;
 	if (pmm_total_pages > MAX_PAGES)
 		pmm_total_pages = MAX_PAGES;
-	unsigned long mapped_pages = 16 * 1024 * 1024 / PAGE_SIZE;
-	if (pmm_total_pages > mapped_pages)
-		pmm_total_pages = mapped_pages;
 
 	pmm_free_count = 0;
 

@@ -1,9 +1,13 @@
 #include "idt.h"
 #include "console.h"
 #include "asm.h"
+#include "kstring.h"
 #include "pic.h"
 #include "timer.h"
 #include "mouse.h"
+#include "keyboard.h"
+#include "syscall.h"
+#include "process.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -50,6 +54,8 @@ void irq0(void);  void irq1(void);  void irq2(void);  void irq3(void);
 void irq4(void);  void irq5(void);  void irq6(void);  void irq7(void);
 void irq8(void);  void irq9(void);  void irq10(void); void irq11(void);
 void irq12(void); void irq13(void); void irq14(void); void irq15(void);
+
+void syscall_entry(void);
 
 static void idt_set_entry(int num, void *handler,
 			  unsigned short sel, unsigned char flags)
@@ -118,6 +124,13 @@ struct isr_regs {
 	uint64_t num, err;
 };
 
+static unsigned long read_cr2(void)
+{
+	unsigned long v;
+	__asm__ volatile("mov %%cr2, %0" : "=r"(v));
+	return v;
+}
+
 void exception_handler(struct isr_regs *r)
 {
 	console_clear_color(0x4F);
@@ -130,6 +143,14 @@ void exception_handler(struct isr_regs *r)
 		console_print("\n");
 	} else {
 		console_print("Unknown interrupt\n");
+	}
+	if (r->num == 14) {
+		unsigned long cr2 = read_cr2();
+		console_print("Fault address: 0x");
+		char buf[17];
+		kxtoa(cr2, buf, sizeof(buf));
+		console_print(buf);
+		console_print("\n");
 	}
 	unsigned long regs[16];
 	regs[0] = r->rax;
@@ -155,6 +176,7 @@ void irq_handler(struct isr_regs *r)
 		timer_handler();
 		break;
 	case 1:
+		keyboard_irq_handler();
 		break;
 	case 12:
 		mouse_handler();
@@ -190,6 +212,10 @@ void idt_init(void)
 
 	serial_print_debug(" irqs done\n");
 
+	/* Syscall interrupt INT 0x80 */
+	idt_set_entry(0x80, syscall_entry, code_sel, 0xEE);
+	serial_print_debug(" syscall handler set\n");
+
 	idt_pointer_t idtp;
 	idtp.limit = (unsigned short)(sizeof(idt_entry_t) * 256 - 1);
 	idtp.base  = (uint64_t)&idt;
@@ -200,6 +226,6 @@ void idt_init(void)
 
 	idt_installed = true;
 	serial_print_debug("idt installed, printing\n");
-	console_print("[ OK ] IDT installed (32 exceptions + 16 IRQs)\n");
+	console_print("[ OK ] IDT installed (32 exceptions + 16 IRQs + syscall)\n");
 	serial_print_debug("idt_init done\n");
 }

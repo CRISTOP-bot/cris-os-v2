@@ -143,26 +143,26 @@ void kernel_panic_ex(const char* message, unsigned int exception_num,
         console_print_color("\n  Register Dump:\n", VGA_ATTR(VGA_LIGHT_CYAN, VGA_RED));
         char buf[32];
 
-        console_print_color("    EAX=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
-        kxtoa(regs[14], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
-        console_print_color("  EBX=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
-        kxtoa(regs[10], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
-        console_print_color("  ECX=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
-        kxtoa(regs[11], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
+        console_print_color("    RAX=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
+        kxtoa(regs[0], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
+        console_print_color("  RBX=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
+        kxtoa(regs[1], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
+        console_print_color("  RCX=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
+        kxtoa(regs[2], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
         console_print_color("\n", VGA_ATTR(VGA_WHITE, VGA_RED));
 
-        console_print_color("    EDX=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
-        kxtoa(regs[12], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
-        console_print_color("  ESI=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
-        kxtoa(regs[9], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
-        console_print_color("  EDI=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
-        kxtoa(regs[8], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
+        console_print_color("    RDX=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
+        kxtoa(regs[3], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
+        console_print_color("  RSI=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
+        kxtoa(regs[4], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
+        console_print_color("  RDI=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
+        kxtoa(regs[5], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
         console_print_color("\n", VGA_ATTR(VGA_WHITE, VGA_RED));
 
-        console_print_color("    EBP=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
-        kxtoa(regs[7], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
-        console_print_color("  ESP=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
+        console_print_color("    RBP=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
         kxtoa(regs[6], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
+        console_print_color("  RSP=0x", VGA_ATTR(VGA_LIGHT_GREY, VGA_RED));
+        kxtoa(regs[7], buf, sizeof(buf)); console_print_color(buf, VGA_ATTR(VGA_WHITE, VGA_RED));
         console_print_color("\n", VGA_ATTR(VGA_WHITE, VGA_RED));
     }
 
